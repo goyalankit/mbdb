@@ -4,14 +4,12 @@ select price from parts where pname='Dirty Harry';
 -- query 2: What orders have been shipped after date '03-feb-95'?
 select * from orders where TO_DATE(SHIPPED) >TO_DATE('03-feb-95');
 
-
 --CHECK THIS ONE
 -- query 3: What are the ono and cname values of customers whose orders have not been shipped (i.e., the shipped column has a null value)?
 select ORDERS.ONO, CUSTOMERS.CNAME from CUSTOMERS, ORDERS where ORDERS.SHIPPED is NULL and ORDERS.CNO = CUSTOMERS.CNO;
 
 -- query 4: Retrieve the names of parts whose quantity on hand (QOH) is between 20 and 70.
 select PNAME from PARTS where QOH > 20 and QOH < 70;
-
 
 --CHECK THIS ONE
 -- query 5: Get all unique pairs of cno values for customers that have the same zip code.
