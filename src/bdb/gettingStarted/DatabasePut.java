@@ -69,8 +69,10 @@ public class DatabasePut {
             throw dbe;
         }
 
+
         /* Commit the transaction. The data is now safely written to the db*/
         txn.commit();
+        myDbEnv.close();
 
         return true;
     }
