@@ -5,6 +5,7 @@ package mdb;
 
 
 import bdb.gettingStarted.DatabasePut;
+import bdb.gettingStarted.Dept;
 
 public class InsertCmd extends Insert {
 
@@ -15,21 +16,15 @@ public class InsertCmd extends Insert {
     public void execute () {
         super.execute();
         dbHandler = new DatabasePut("mydbenv");
+        Dept dept = new Dept();
+        dept.createDb();
+        dept.setDeptno(34);
+        dept.setChairman("sdfsdf");
+        dept.setDept_name("dsfsdf");
+        dept.insert();
     }
 
     public void takeInsertAction(String relation){
-        switch (Relations.valueOf(relation.toUpperCase())){
-            case DEPT:
-                dbHandler.insertDept(1,"computer science", "John");
-
-                break;
-            case EMP:
-                break;
-            case PROF:
-                break;
-            default:
-                break;
-        }
 
     }
 

@@ -29,9 +29,45 @@ public class DatabasePut {
                 false);      // is this environment read-only?
     }
 
-    public boolean insertDept(int deptno, String dept_name, String chairman) {
+
+    public boolean insert(Object object){
+        Relation rel = (Relation)object;
+
+
+        TupleBinding relBinding = new RelationBinding(rel);
+
+
+        /* Initializing transaction. Multiple commands can be executed in same transaction. */
+        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+
+        /* converting key to database entry object */
+        EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(Integer.class);
+
+        try {
+            Integer myIntegerKey = new Integer(((Dept)object).getDeptno());
+            mykeybinding.objectToEntry(myIntegerKey, theKey);
+        } catch (Exception e) {
+            System.out.println("Key could not be serialized.");
+        }
+
+        /* creating dept object for data */
+
+        relBinding.objectToEntry(object, theData);
+
+        /* converting data to database entry object */
+
+
+
+        return false;
+    }
+
+    public boolean insertDept(int deptno, String dept_name, String chairman, Relation rel) {
         /* Instantiating custom binding for data in dept object */
         TupleBinding deptBinding = new DeptBinding();
+
+
+        TupleBinding relBinding = new RelationBinding(rel);
+
 
         /* Initializing transaction. Multiple commands can be executed in same transaction. */
         Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
@@ -51,6 +87,8 @@ public class DatabasePut {
         theDept.setChairman(chairman);
         theDept.setDeptno(deptno);
 
+
+        relBinding.objectToEntry(theDept, theData);
 
         /* converting data to database entry object */
         deptBinding.objectToEntry(theDept, theData);

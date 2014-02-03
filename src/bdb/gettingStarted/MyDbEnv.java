@@ -20,6 +20,7 @@ public class MyDbEnv {
     private Database profDb;
     private Database classCatalogDb;
     private SecondaryDatabase itemNameIndexDb;
+    private Database partsDb;
 
     // Needed for object serialization
     private StoredClassCatalog classCatalog;
@@ -79,6 +80,8 @@ public class MyDbEnv {
         profDb = myEnv.openDatabase(null,
                 "ProfDb",
                 myDbConfig);
+
+        partsDb = myEnv.openDatabase(null,"PartsDb", myDbConfig);
 
 
 
