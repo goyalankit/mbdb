@@ -5,4 +5,14 @@ package com.bdb;
  */
 public class DbString extends DbValue {
     String value;
+
+    public DbString(String value) {
+
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
 }

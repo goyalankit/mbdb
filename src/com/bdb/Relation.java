@@ -8,7 +8,7 @@ public class Relation {
     private int numFields;
     private Column [] columns;
 
-    public Relation(){}
+    //public Relation(){}
 
     public Relation(String name, int numFields, Column[] columns) {
         this.name = name;

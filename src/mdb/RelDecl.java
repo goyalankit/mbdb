@@ -13,15 +13,15 @@ public class RelDecl extends Decl_rel {
 
     public void execute () {
         super.execute();
-        Relation rel = Relation.getRelation(getRel_name().toString());
+        Relation rel = Relation.getRelation(getRel_name().toString().trim());
         if(null==rel)
             createNewRelation();
         else
-            System.out.println("Table with the name " + rel.getName() + " already exists");
+            System.err.println("Table with the name " + rel.getName() + " already exists");
     }
 
     public void createNewRelation(){
-        String name = getRel_name().toString();
+        String name = getRel_name().toString().trim();
         AstCursor c = new AstCursor();
         int index = 0;
         int numOfColumns = 0;
@@ -34,10 +34,15 @@ public class RelDecl extends Decl_rel {
         numOfColumns = 0;     //reusing the variable
         for (c.FirstElement(getFld_decl_list()); c.MoreElement(); c.NextElement() ) {
             AstNode node = c.node ;
-            columns[numOfColumns] = new Column(node.arg[1].toString(), node.arg[0].toString(), numOfColumns);
+            String cl_type = node.arg[1].toString().trim();
+            String cl_name = node.arg[0].toString().trim();
+            if(!(cl_type.equals("int") || cl_type.equals("str"))){
+                System.err.println("Invalid Datatype: datatype not supported");
+                return;
+            }
+            columns[numOfColumns] = new Column(cl_type, cl_name, numOfColumns);
             numOfColumns += 1;
         }
-
         Relation relation = new Relation(name, numOfColumns, columns);
         relation.create();
     }

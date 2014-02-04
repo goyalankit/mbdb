@@ -4,3 +4,9 @@ create table emp ( empno int,
               name str
             );
 .
+
+create table dept ( deptno int,
+               dept_name str,
+               chairman str
+             );
+.

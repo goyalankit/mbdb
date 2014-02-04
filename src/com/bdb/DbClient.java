@@ -17,6 +17,7 @@ public class DbClient {
     private static DatabaseEntry theData = new DatabaseEntry();
 
     private DbEnv myDbEnv = new DbEnv();
+    private static int a = 0;
 
     public DbClient(String dbEnvFilename, String relation) {
         dbEnvFilename = "mydbenv";
@@ -26,6 +27,7 @@ public class DbClient {
     }
 
     public void createNewRelation(Relation relation){
+
         TupleBinding relationBinding = new MyRelationBinding();
 
         /* Initializing transaction. Multiple commands can be executed in same transaction. */
@@ -34,7 +36,7 @@ public class DbClient {
         /* converting key to database entry object */
         EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(Integer.class);
 
-        Integer myIntegerKey = new Integer(1);
+        Integer myIntegerKey = new Integer(numRecordsInARelation());
         try {
             mykeybinding.objectToEntry(myIntegerKey, theKey);
         } catch (Exception e) {
@@ -56,7 +58,33 @@ public class DbClient {
             throw dbe;
         }
         txn.commit();
+        System.out.println("**DBClient: Table "+relation.getName() + "created.**");
         myDbEnv.close();
+    }
+
+    public int numRecordsInARelation(){
+        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        int numRecords = 0;
+        try { // always want to make sure the cursor gets closed
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                numRecords += 1;
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            e.printStackTrace();
+        } finally {
+            //System.out.println("Cursor closed");
+            cursor.close();
+        }
+
+        return numRecords;
     }
 
     public Relation getRelation(String rel_name){

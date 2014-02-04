@@ -59,9 +59,9 @@ public class DbEnv {
     public void close() {
         if (myEnv != null) {
             try {
-                //Close the secondary before closing the primaries
+                /* Close the secondary before closing the primaries */
                 myDatabase.close();
-                // Finally, close the environment.
+                /* Finally, close the environment.*/
                 myEnv.close();
             } catch(DatabaseException dbe) {
                 System.err.println("Error closing MyDbEnv: " +
