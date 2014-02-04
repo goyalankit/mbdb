@@ -4,14 +4,12 @@
 package mdb;
 
 
-import bdb.gettingStarted.DatabasePut;
 import com.bdb.*;
 
 public class InsertCmd extends Insert {
 
     final public static int ARG_LENGTH = 2 ;
     final public static int TOK_LENGTH = 6 ;
-    public DatabasePut dbHandler;
 
     public void execute () {
         super.execute();
