@@ -1,3 +1,3 @@
 insert into emp
-       values (10100, 26, "Computer Science", "Anderson, John" );
+       values (10100, "Computer Science", "Anderson, John" , 23);
 .

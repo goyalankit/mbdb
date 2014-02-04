@@ -23,7 +23,8 @@ public class InsertCmd extends Insert {
             tuple = createTuple(relation);
         }
 
-        relation.insert(tuple);
+        if(null != tuple)
+            relation.insert(tuple);
     }
 
     public Tuple createTuple(Relation relation){
@@ -42,6 +43,7 @@ public class InsertCmd extends Insert {
         }
         }catch (Exception e){
             System.err.println("Type conversion error");
+            return null;
         }
 
         tuple.setDbValues(dbValues);
