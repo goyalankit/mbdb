@@ -21,29 +21,33 @@ public class Relation {
         dbClient.createNewRelation(this);
     }
 
+    /**
+     *
+     * insert a tuple(record) in table(Relation).
+     * @param tuple
+     * @return
+     */
+
     public boolean insert(Tuple tuple){
         DbClient dbClient = new DbClient("mydbenv", name);
         dbClient.insertTupleInRelation(tuple);
         return true;
     }
 
-
     /**
      *
-     * Usage: getRelation("emp") : get relation object from metadata.
-     *
-     * */
-    public static Relation getRelation(String relation){
+     * get relation object from metadata.
+     * @param relation
+     * @return
+     */
+     public static Relation getRelation(String relation){
         DbClient dbClient = new DbClient("mydbenv","metadata");
         return dbClient.getRelation(relation);
     }
 
     /**
-     *
-     * Usage: selectStar() : select * from relation.
-     *
-     * */
-
+     *  select * from a given table(Relation)
+     */
     public void selectStar(){
         DbClient dbClient = new DbClient("mydbenv", name);
         List<Tuple> tupleList = dbClient.selectStarFromRelation();
@@ -52,6 +56,7 @@ public class Relation {
             System.out.println(tuple +"\n" );
     }
 
+    @Override
     public String toString(){
         String str = "";
         str += "Name: "+name+"\n";
