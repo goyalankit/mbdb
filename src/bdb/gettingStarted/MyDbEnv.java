@@ -85,9 +85,9 @@ public class MyDbEnv {
         // Open the class catalog db. This is used to
         // optimize class serialization.
         classCatalogDb =
-            myEnv.openDatabase(null,
-                               "ClassCatalogDB",
-                               myDbConfig);
+                myEnv.openDatabase(null,
+                        "ClassCatalogDB",
+                        myDbConfig);
 
         // Create our class catalog
         classCatalog = new StoredClassCatalog(classCatalogDb);
@@ -162,7 +162,8 @@ public class MyDbEnv {
                 inventoryDb.close();
                 classCatalogDb.close();
                 deptDb.close();
-
+                profDb.close();
+                empDb.close();
                 // Finally, close the environment.
                 myEnv.close();
             } catch(DatabaseException dbe) {

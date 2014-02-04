@@ -182,7 +182,7 @@ public class Main {
 
         try {
             userInput =
-                    new BufferedReader( new FileReader("src/input/dmltest.sql") );
+                    new BufferedReader( new FileReader("src/input/test.sql") );
         }
         catch ( Exception e ) {
             System.err.println( "File " + " not found:"

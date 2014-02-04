@@ -12,7 +12,6 @@ public class DeptBinding extends TupleBinding {
     // Implement this abstract method. Used to convert
     // a DatabaseEntry to an Inventory object.
     public Object entryToObject(TupleInput ti) {
-
         int deptno = ti.readInt();
         String dept_name = ti.readString();
         String chairman = ti.readString();
@@ -28,13 +27,10 @@ public class DeptBinding extends TupleBinding {
     // Implement this abstract method. Used to convert a
     // Inventory object to a DatabaseEntry object.
     public void objectToEntry(Object object, TupleOutput to) {
-
         Dept dept = (Dept)object;
-
         to.writeInt(dept.getDeptno());
         to.writeString(dept.getDept_name());
         to.writeString(dept.getChairman());
-
     }
 
 }

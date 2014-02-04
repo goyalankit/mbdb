@@ -38,6 +38,7 @@ public class DatabasePut {
 
         /* converting key to database entry object */
         EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(Integer.class);
+
         Integer myIntegerKey = new Integer(deptno);
         try {
             mykeybinding.objectToEntry(myIntegerKey, theKey);
@@ -120,11 +121,12 @@ public class DatabasePut {
 
         /* Commit the transaction. The data is now safely written to the db*/
         txn.commit();
+        myDbEnv.close();
 
         return true;
     }
 
-    public boolean insertProf(int profno, String prof_name, String department) {
+    public boolean insertProf(int profno, String prof_name, int department) {
         /* Instantiating custom binding for data in emp object */
         TupleBinding profBinding = new ProfBinding();
 
@@ -142,6 +144,9 @@ public class DatabasePut {
 
         /* creating dept object for data */
         Prof prof = new Prof();
+        prof.setProfno(profno);
+        prof.setProf_name(prof_name);
+        prof.setDepartment(department);
 
         /* converting data to database entry object */
         profBinding.objectToEntry(prof, theData);
@@ -162,9 +167,7 @@ public class DatabasePut {
 
         /* Commit the transaction. The data is now safely written to the db*/
         txn.commit();
-
+        myDbEnv.close();
         return true;
     }
-
-
 }
