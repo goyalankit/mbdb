@@ -10,6 +10,11 @@ public class DbInt extends DbValue {
         this.value = value;
     }
 
+    public DbInt(Integer value, String columnName){
+        this(value);
+        this.columnName = columnName;
+    }
+
     public Integer getValue() {
         return value;
     }

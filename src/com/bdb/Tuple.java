@@ -16,6 +16,19 @@ public class Tuple {
         this.dbValues = dbValues;
     }
 
+    @Override
+    public String toString() {
+        String str = "\n";
+        str +=  "Relation: " + relationName + "\n";
+        for (DbValue dbValue : dbValues) {
+            if(dbValue instanceof DbInt)
+                str += dbValue.columnName + " " + ((DbInt)dbValue).getValue() + "\n";
+            else
+                str += dbValue.columnName + " " + ((DbString)dbValue).getValue() + "\n";
+        }
+        return str;
+    }
+
     public DbValue[] getDbValues() {
         return dbValues;
     }

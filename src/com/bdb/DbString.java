@@ -6,9 +6,10 @@ package com.bdb;
 public class DbString extends DbValue {
     String value;
 
-    public DbString(String value) {
 
+    public DbString(String value, String columnName){
         this.value = value;
+        this.columnName = columnName;
     }
 
     public String getValue() {

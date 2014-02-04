@@ -1,5 +1,7 @@
 package com.bdb;
 
+import java.util.List;
+
 /**
  * Created by ankit on 2/3/14.
  */
@@ -7,8 +9,6 @@ public class Relation {
     private String name;
     private int numFields;
     private Column [] columns;
-
-    //public Relation(){}
 
     public Relation(String name, int numFields, Column[] columns) {
         this.name = name;
@@ -27,9 +27,29 @@ public class Relation {
         return true;
     }
 
+
+    /**
+     *
+     * Usage: getRelation("emp") : get relation object from metadata.
+     *
+     * */
     public static Relation getRelation(String relation){
         DbClient dbClient = new DbClient("mydbenv","metadata");
         return dbClient.getRelation(relation);
+    }
+
+    /**
+     *
+     * Usage: selectStar() : select * from relation.
+     *
+     * */
+
+    public void selectStar(){
+        DbClient dbClient = new DbClient("mydbenv", name);
+        List<Tuple> tupleList = dbClient.selectStarFromRelation();
+        System.out.println(tupleList.size() + "records found. \n");
+        for(Tuple tuple : tupleList)
+            System.out.println(tuple +"\n" );
     }
 
     public String toString(){
@@ -42,9 +62,10 @@ public class Relation {
         return str;
     }
 
-    public String getName() {
-        return name;
-    }
+
+    /* Getters and Setters */
+
+    public String getName() { return name; }
 
     public void setName(String name) {
         this.name = name;
@@ -60,10 +81,6 @@ public class Relation {
 
     public Column[] getColumns() {
         return columns;
-    }
-
-    public void addColumn(Column column){
-
     }
 
     public void setColumns(Column[] columns) {

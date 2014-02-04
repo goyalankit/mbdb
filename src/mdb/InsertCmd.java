@@ -35,10 +35,11 @@ public class InsertCmd extends Insert {
         int index = 0;
         try{
         for (c.FirstElement(getLiteral_list()); c.MoreElement(); c.NextElement() ) {
-            if(columns[index].getType().equals("str"))
-                dbValues[index] = new DbString(c.node.tok[0].getTokenName().toString());
+            if(columns[index].getType().equals("str")){
+                dbValues[index] = new DbString(c.node.tok[0].getTokenName().toString(), columns[index].getName());
+            }
             else
-                dbValues[index] = new DbInt(Integer.parseInt(c.node.tok[0].getTokenName().toString()));
+                dbValues[index] = new DbInt(Integer.parseInt(c.node.tok[0].getTokenName().toString()), columns[index].getName());
             index++;
         }
         }catch (Exception e){
@@ -51,7 +52,6 @@ public class InsertCmd extends Insert {
     }
 
     public AstToken getINSERT () {
-
         return (AstToken) tok [0] ;
     }
 

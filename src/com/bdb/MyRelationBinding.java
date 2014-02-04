@@ -30,8 +30,6 @@ public class MyRelationBinding extends TupleBinding{
         return relation;
     }
 
-    // Implement this abstract method. Used to convert a
-    // Inventory object to a DatabaseEntry object.
     public void objectToEntry(Object object, TupleOutput to) {
 
         Relation relation = (Relation)object;

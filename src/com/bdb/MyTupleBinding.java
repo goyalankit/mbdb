@@ -10,29 +10,24 @@ import com.sleepycat.bind.tuple.TupleOutput;
 public class MyTupleBinding extends TupleBinding{
 
     public Object entryToObject(TupleInput ti) {
-
         String name = ti.readString();
-        DbClient dbClient = new DbClient("mydbenv", name);
-        Relation relation = dbClient.getRelation(name);
+        Relation relation = Relation.getRelation(name); /* get the corresponding relation object from metadata table */
 
         Tuple tuple = new Tuple(relation);
         DbValue[] dbValues = new DbValue[relation.getNumFields()];
         Column [] columns = relation.getColumns();
 
         for (int i = 0; i < columns.length; i++) {
-            if(columns[0].type.equals("int"))
-                dbValues[i] = new DbInt(ti.readInt());
-            else if(columns[0].type.equals("str"))
-                dbValues[i] = new DbString(ti.readString());
+            if(columns[i].type.equals("int"))
+                dbValues[i] = new DbInt(ti.readInt(), columns[i].getName());
+            else if(columns[i].type.equals("str"))
+                dbValues[i] = new DbString(ti.readString(), columns[i].getName());
         }
 
         tuple.setDbValues(dbValues);
-
         return tuple;
     }
 
-    // Implement this abstract method. Used to convert a
-    // Inventory object to a DatabaseEntry object.
     public void objectToEntry(Object object, TupleOutput to) {
         Tuple tuple = (Tuple)object;
         to.writeString(tuple.getRelationName());
@@ -46,5 +41,4 @@ public class MyTupleBinding extends TupleBinding{
                 to.writeInt(((DbInt) dbValues[i]).getValue());
         } 
     }
-
 }

@@ -6,10 +6,16 @@ import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.je.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ *
  * Created by ankit on 2/3/14.
+ * This class is meant to handle interactions between Berkley DB and MDB
+ *
  */
+
 public class DbClient {
     private static File myDbEnvPath = new File("/tmp/JEDB");
 
@@ -25,6 +31,13 @@ public class DbClient {
         myDbEnv.setup(myDbEnvPath, // path to the environment home
                 false, relation);      // is this environment read-only?
     }
+
+    /**
+     *
+     * createNewRelation: creates a new relation(Table) in the metadata.
+     * This is used to avoid hardcoded java classes as required by BDB.
+     *
+     * */
 
     public boolean createNewRelation(Relation relation){
 
@@ -62,6 +75,12 @@ public class DbClient {
         myDbEnv.close();
         return true;
     }
+
+    /**
+     *
+     * insert a tuple in a table.
+     *
+     * */
 
     public boolean insertTupleInRelation(Tuple tuple){
 
@@ -101,7 +120,46 @@ public class DbClient {
         return true;
     }
 
-    public int numRecordsInARelation(){
+    /**
+    *
+    *  select * from relation.
+    *  Avoid calling this method directly. This method gets called from Relation class.
+    *
+    * */
+
+    public List<Tuple> selectStarFromRelation(){
+        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        TupleBinding myTupleBinding = new MyTupleBinding();
+        List<Tuple> tuples = new ArrayList<Tuple>();
+        try { // always want to make sure the cursor gets closed
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                tuples.add((Tuple) myTupleBinding.entryToObject(foundData));
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+        myDbEnv.close();
+        return tuples;
+    }
+
+    /**
+     *
+     * get the number of records in a given relation.
+     * Note that this method doesn't close the environment.
+     * Incorrect use may lead to weird locking errors.
+     *
+     * */
+
+    private int numRecordsInARelation(){
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -119,12 +177,17 @@ public class DbClient {
             System.err.println(e.toString());
             e.printStackTrace();
         } finally {
-            //System.out.println("Cursor closed");
             cursor.close();
         }
 
         return numRecords;
     }
+
+    /**
+     *
+     * getRelation : get a relation object from BDB based on the name.
+     *
+     * */
 
     public Relation getRelation(String rel_name){
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
@@ -135,7 +198,7 @@ public class DbClient {
         Relation foundRelation = null;
         try { // always want to make sure the cursor gets closed
             while (cursor.getNext(foundKey, foundData,
-                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) { 
                 Relation relation =
                         (Relation)relationBinding.entryToObject(foundData);
                 if(relation.getName().equals(rel_name)){
@@ -149,7 +212,6 @@ public class DbClient {
             System.err.println(e.toString());
             e.printStackTrace();
         } finally {
-            System.out.println("Cursor closed");
             cursor.close();
         }
         myDbEnv.close();
