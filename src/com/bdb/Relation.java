@@ -22,13 +22,24 @@ public class Relation {
     }
 
     public boolean insert(Tuple tuple){
-        //DBClient insertTupleToRelation(tuple, relation)
-        return false;
+        DbClient dbClient = new DbClient("mydbenv", name);
+        dbClient.insertTupleInRelation(tuple);
+        return true;
     }
 
     public static Relation getRelation(String relation){
         DbClient dbClient = new DbClient("mydbenv","metadata");
         return dbClient.getRelation(relation);
+    }
+
+    public String toString(){
+        String str = "";
+        str += "Name: "+name+"\n";
+        str += "NumFields: "+numFields+"\n";
+        for (int i = 0; i < columns.length; i++) {
+            str += "Columns: "+columns[i].name+" - "+ columns[i].type +"\n";
+        }
+        return str;
     }
 
     public String getName() {

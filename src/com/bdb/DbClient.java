@@ -26,7 +26,7 @@ public class DbClient {
                 false, relation);      // is this environment read-only?
     }
 
-    public void createNewRelation(Relation relation){
+    public boolean createNewRelation(Relation relation){
 
         TupleBinding relationBinding = new MyRelationBinding();
 
@@ -60,6 +60,45 @@ public class DbClient {
         txn.commit();
         System.out.println("**DBClient: Table "+relation.getName() + "created.**");
         myDbEnv.close();
+        return true;
+    }
+
+    public boolean insertTupleInRelation(Tuple tuple){
+
+        TupleBinding myTupleBinding = new MyTupleBinding();
+
+        /* Initializing transaction. Multiple commands can be executed in same transaction. */
+        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+
+        /* converting key to database entry object */
+        EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(Integer.class);
+
+        Integer myIntegerKey = new Integer(numRecordsInARelation());
+        try {
+            mykeybinding.objectToEntry(myIntegerKey, theKey);
+        } catch (Exception e) {
+            System.out.println("Key could not be serialized.");
+        }
+
+        myTupleBinding.objectToEntry(tuple, theData);
+
+        try {
+            myDbEnv.getDB().put(txn, theKey, theData);
+        } catch (DatabaseException dbe) {
+            try {
+                System.out.println("Error putting entry ");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            txn.abort();
+            throw dbe;
+        }
+        txn.commit();
+        System.out.println("**DBClient: Tuple inserted.**");
+        myDbEnv.close();
+
+        return true;
     }
 
     public int numRecordsInARelation(){

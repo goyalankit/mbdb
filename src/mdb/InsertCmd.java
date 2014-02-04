@@ -5,7 +5,7 @@ package mdb;
 
 
 import bdb.gettingStarted.DatabasePut;
-import bdb.gettingStarted.Relations;
+import com.bdb.*;
 
 public class InsertCmd extends Insert {
 
@@ -16,26 +16,38 @@ public class InsertCmd extends Insert {
     public void execute () {
         super.execute();
 
-        //dbHandler = new DatabasePut("mydbenv");
-        //dbHandler.insertDept(1,"computer science", "John");
-        //takeInsertAction(getRel_name().tok[0].tokenName().toUpperCase());
-    }
-
-    public void takeInsertAction(String relation){
-        Relations r = Relations.valueOf(relation);
-        switch (r){
-            case DEPT:
-                dbHandler.insertDept(1,"computer science", "John");
-                break;
-            case EMP:
-                dbHandler.insertEmp(1,2, "John","wqe");
-                break;
-            case PROF:
-                break;
-            default:
-                break;
+        Relation relation = Relation.getRelation(getRel_name().toString().trim());
+        Tuple tuple = null;
+        //System.out.println(relation);
+        if(null == relation)
+            System.err.println("Table doesn't exist. Create the table first");
+        else{
+            tuple = createTuple(relation);
         }
 
+        relation.insert(tuple);
+    }
+
+    public Tuple createTuple(Relation relation){
+        Tuple tuple = new Tuple(relation);
+        Column [] columns = relation.getColumns();
+        DbValue [] dbValues = tuple.getDbValues();
+        AstCursor c = new AstCursor();
+        int index = 0;
+        try{
+        for (c.FirstElement(getLiteral_list()); c.MoreElement(); c.NextElement() ) {
+            if(columns[index].getType().equals("str"))
+                dbValues[index] = new DbString(c.node.tok[0].getTokenName().toString());
+            else
+                dbValues[index] = new DbInt(Integer.parseInt(c.node.tok[0].getTokenName().toString()));
+            index++;
+        }
+        }catch (Exception e){
+            System.err.println("Type conversion error");
+        }
+
+        tuple.setDbValues(dbValues);
+        return tuple;
     }
 
     public AstToken getINSERT () {
