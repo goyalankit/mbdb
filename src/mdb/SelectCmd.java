@@ -3,6 +3,7 @@
 
 package mdb;
 
+import com.bdb.Column;
 import com.bdb.Relation;
 
 public class SelectCmd extends Select {
@@ -17,8 +18,20 @@ public class SelectCmd extends Select {
     }
 
     public void selectAllFromARelation(){
-        Relation relation = Relation.getRelation("emp");
-        relation.selectStar();
+        System.out.println("\nRelation Name : " + getRel_list().arg[0].arg[0].toString().trim());
+        System.out.println("--------------------------------------------------");
+        Relation relation = Relation.getRelation(getRel_list().arg[0].arg[0].toString().trim());
+        if(null != relation){
+            String str = relation.getName() +" (";
+            for(Column cl : relation.getColumns())
+                str += cl.getName() + ",";
+            str = str.substring(0, str.lastIndexOf(",")) + ")";
+            System.out.println(str);
+            relation.selectStar();
+        }
+        else{
+            System.err.println("Relation doesn't exists");
+        }
     }
 
     public AstToken getFROM () {

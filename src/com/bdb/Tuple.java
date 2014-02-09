@@ -18,14 +18,14 @@ public class Tuple {
 
     @Override
     public String toString() {
-        String str = "\n";
-        str +=  "Relation: " + relationName + "\n";
+        String str = "";
         for (DbValue dbValue : dbValues) {
             if(dbValue instanceof DbInt)
-                str += dbValue.columnName + " " + ((DbInt)dbValue).getValue() + "\n";
+                str += ((DbInt)dbValue).getValue() + ",";
             else
-                str += dbValue.columnName + " " + ((DbString)dbValue).getValue() + "\n";
+                str += ((DbString)dbValue).getValue() + ",";
         }
+        str = str.substring(0, str.lastIndexOf(","));
         return str;
     }
 

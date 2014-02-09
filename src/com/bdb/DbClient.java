@@ -47,11 +47,11 @@ public class DbClient {
         Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
 
         /* converting key to database entry object */
-        EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(Integer.class);
+        EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(String.class);
 
-        Integer myIntegerKey = new Integer(numRecordsInARelation());
+        String myStringKey = new String(relation.getName().trim());
         try {
-            mykeybinding.objectToEntry(myIntegerKey, theKey);
+            mykeybinding.objectToEntry(myStringKey, theKey);
         } catch (Exception e) {
             System.out.println("Key could not be serialized.");
         }
