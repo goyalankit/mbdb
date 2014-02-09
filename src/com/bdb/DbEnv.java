@@ -10,6 +10,8 @@ import java.io.File;
 public class DbEnv {
     private Environment myEnv;
     private Database myDatabase;
+    private Database mySeqDatabase;
+    private Sequence seq;
 
     public DbEnv() {}
 
@@ -19,6 +21,7 @@ public class DbEnv {
         EnvironmentConfig myEnvConfig = new EnvironmentConfig();
         DatabaseConfig myDbConfig = new DatabaseConfig();
         SecondaryConfig mySecConfig = new SecondaryConfig();
+        SequenceConfig mySeqconfig = new SequenceConfig();
 
         // If the environment is read-only, then
         // make the databases read-only too.
@@ -32,6 +35,7 @@ public class DbEnv {
         myEnvConfig.setAllowCreate(!readOnly);
         myDbConfig.setAllowCreate(!readOnly);
         mySecConfig.setAllowCreate(!readOnly);
+        mySeqconfig.setAllowCreate(!readOnly);
 
         // Allow transactions if we are writing to the database
         myEnvConfig.setTransactional(!readOnly);
@@ -46,6 +50,19 @@ public class DbEnv {
         myDatabase = myEnv.openDatabase(null,
                 relation,
                 myDbConfig);
+
+        mySeqDatabase = myEnv.openDatabase(null,
+                                        "sequence.db",
+                                        myDbConfig);
+
+        seq = mySeqDatabase.openSequence(null,
+                                         new DatabaseEntry((relation+"_ID").getBytes()),
+                                            mySeqconfig);
+    }
+
+
+    public Long getRelationKey(Transaction txn){
+        return  seq.get(txn, 1);
     }
 
     public Environment getEnv() {
@@ -61,6 +78,8 @@ public class DbEnv {
             try {
                 /* Close the secondary before closing the primaries */
                 myDatabase.close();
+                seq.close();
+                mySeqDatabase.close();
                 /* Finally, close the environment.*/
                 myEnv.close();
             } catch(DatabaseException dbe) {

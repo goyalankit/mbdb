@@ -90,13 +90,13 @@ public class DbClient {
         Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
 
         /* converting key to database entry object */
-        EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(Integer.class);
+        EntryBinding keybinding = TupleBinding.getPrimitiveBinding(Long.class);
+        Long myKey = myDbEnv.getRelationKey(txn);
 
-        Integer myIntegerKey = new Integer(numRecordsInARelation());
-        try {
-            mykeybinding.objectToEntry(myIntegerKey, theKey);
-        } catch (Exception e) {
-            System.out.println("Key could not be serialized.");
+        try{
+            keybinding.objectToEntry(myKey, theKey);
+        }   catch (Exception e){
+
         }
 
         myTupleBinding.objectToEntry(tuple, theData);
@@ -137,6 +137,7 @@ public class DbClient {
         try { // always want to make sure the cursor gets closed
             while (cursor.getNext(foundKey, foundData,
                     LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+
                 tuples.add((Tuple) myTupleBinding.entryToObject(foundData));
             }
 
