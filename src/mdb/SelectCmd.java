@@ -3,8 +3,10 @@
 
 package mdb;
 
-import com.bdb.Column;
-import com.bdb.Relation;
+import com.bdb.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SelectCmd extends Select {
 
@@ -13,8 +15,102 @@ public class SelectCmd extends Select {
 
     public void execute () {
         super.execute();
+        parseSelectQuery();
+        //selectAllFromARelation();
+    }
 
-        selectAllFromARelation();
+    public void parseSelectQuery(){
+        AstCursor c = new AstCursor();
+        List<Relation> relations = new ArrayList<Relation>();
+        List<Predicate> predicates = new ArrayList<Predicate>();
+
+        for (c.FirstElement(getRel_list()); c.MoreElement(); c.NextElement() ) {
+            AstNode node = c.node ;
+            relations.add(Relation.getRelation(node.toString().trim()));
+
+        }
+
+        AstNode m = getWherePred();
+        Predicate p = null;
+        for (c.FirstElement(m.arg[0]); c.MoreElement(); c.NextElement() ) {
+            if(c.node instanceof SimpleClause)
+            {
+                p = getSimplePredicate(c, relations);
+            }
+            else if(c.node instanceof JoinClause)
+            {
+                p = getJoinPredicate(c, relations);
+
+            }else
+            {
+                System.err.println("Predicate not allowed");
+            }
+
+            if(null != p)
+                predicates.add(p);
+
+            System.out.println();
+        }
+
+        SelectQueryProcessor sqp = new SelectQueryProcessor(QueryType.SELECT, relations, predicates);
+        sqp.build();
+        sqp.process();
+    }
+
+    private Predicate getSimplePredicate(AstCursor c, List<Relation> relations) {
+        Predicate p;
+        SimpleClause simpleClause = (SimpleClause)c.node;
+        String lhs = simpleClause.getField_spec().toString();
+        String []s;
+        String lhs_relation = null;
+        String lhs_column = null;
+
+        if(lhs.contains(".")){
+            s = lhs.split("\\.");
+            lhs_relation = s[0].trim();
+            lhs_column = s[1].trim();
+        }else{
+            lhs_relation = null;
+            lhs_column = lhs.trim();
+        }
+
+        p = new Predicate(PredType.SIMPLE, relations, lhs_relation, lhs_column,
+                                        simpleClause.getLiteral().toString().trim(),
+                                        OpType.getOp(simpleClause.getRel().toString().trim()));
+        return p;
+    }
+
+    private Predicate getJoinPredicate(AstCursor c, List<Relation> relations) {
+        Predicate p;
+        JoinClause joinClause = (JoinClause)c.node;
+        String lhs_column, lhs_relation, rhs_column, rhs_relation;
+        lhs_column = lhs_relation = rhs_relation = rhs_column = null;
+
+        String lhs = joinClause.arg[0].toString();
+        String[] s;
+        if(lhs.contains(".")){
+            s = lhs.split("\\.");
+            lhs_relation = s[0].trim();
+            lhs_column = s[1].trim();
+        }else{
+            lhs_column = lhs.trim();
+        }
+
+        String rhs = joinClause.arg[1].toString();
+        s = null;
+        if(lhs.contains(".")){
+            s = lhs.split("\\.");
+            rhs_relation = s[0].trim();
+            rhs_column = s[1].trim();
+        }else{
+            rhs_column = lhs.trim();
+        }
+
+
+        p = new Predicate(PredType.JOIN, relations, lhs_relation, lhs_column,
+                                        rhs_relation, rhs_column,
+                                        OpType.getOp(joinClause.getEQ().toString().trim()));
+        return p;
     }
 
     public void selectAllFromARelation(){

@@ -7,7 +7,9 @@ import com.sleepycat.je.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -141,6 +143,36 @@ public class DbClient {
                 tuples.add((Tuple) myTupleBinding.entryToObject(foundData));
             }
 
+        } catch (Exception e) {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+        myDbEnv.close();
+        return tuples;
+    }
+
+    public Set<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
+        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        TupleBinding myTupleBinding = new MyTupleBinding();
+        Set<Tuple> tuples = new HashSet<Tuple>();
+        try { // always want to make sure the cursor gets closed
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+                boolean includeTuple = true;
+                for(Predicate p : predicates){
+                    if(!p.applyLocal(t))
+                        includeTuple = false;
+                }
+                if(includeTuple) tuples.add(t);
+
+            }
         } catch (Exception e) {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());

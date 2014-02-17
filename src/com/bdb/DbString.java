@@ -16,4 +16,36 @@ public class DbString extends DbValue {
         return value;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DbString)) return false;
+
+        DbString dbString = (DbString) o;
+
+        if (value != null ? !value.equals(dbString.value) : dbString.value != null) return false;
+
+        return true;
+    }
+
+    public boolean operator(Object o, OpType opType){
+        if(!(o instanceof DbString)) return false;
+
+        DbString dbInt = (DbString) o;
+
+        switch (opType){
+            case EQUALS:
+                return this.equals(o);
+            case NOT_EQUALS:
+                return (!this.equals(o));
+            default:
+                return false;
+        }
+    }
+
+
+    @Override
+    public int hashCode() {
+        return value != null ? value.hashCode() : 0;
+    }
 }

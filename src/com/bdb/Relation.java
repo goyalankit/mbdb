@@ -56,6 +56,15 @@ public class Relation {
             System.out.println(tuple +"\n" );
     }
 
+    public Column getColumn(String name){
+        for(Column c: columns){
+            if(c.getName().equals(name)){
+                return c;
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString(){
         String str = "";

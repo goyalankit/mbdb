@@ -1,7 +1,2 @@
-create table zipcodes (
-  zip      int,
-  city     str);
-.
-
-select * from zipcodes;
+select * from zipcodes where zip=54444 and city="Columbia";
 .
