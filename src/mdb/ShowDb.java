@@ -4,7 +4,7 @@
 package mdb;
 
 import com.bdb.DbClient;
-import com.bdb.Tuple;
+import com.bdb.Relation;
 
 import java.util.List;
 
@@ -21,11 +21,24 @@ public class ShowDb extends Show {
 
     public void selectStar(){
         DbClient dbClient = new DbClient("mydbenv", "metadata");
-        List<Tuple> tupleList = dbClient.selectStarFromRelation();
-        System.out.println(tupleList.size() + "records found. \n");
-        for(Tuple tuple : tupleList)
-            System.out.println(tuple +"\n" );
+        List<Relation> relationList = dbClient.showRelationsInADatabase();
+        showRelation(relationList);
     }
+
+
+    public void showRelation(List<Relation> relations){
+        String leftAlignFormat = "| %-15s |%n";
+        System.out.format("\n+----------------+%n");
+        System.out.printf("| Relation Name   |%n");
+        System.out.format("+-----------------+%n");
+
+        for (int i = 0; i < relations.size(); i++) {
+            System.out.format(leftAlignFormat, relations.get(i).getName());
+        }
+        System.out.format("+-----------------+%n");
+
+    }
+
 
 
     public AstToken getSEMI () {
@@ -34,7 +47,7 @@ public class ShowDb extends Show {
     }
 
     public AstToken getSHOW () {
-        
+
         return (AstToken) tok [0] ;
     }
 

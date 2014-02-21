@@ -38,6 +38,14 @@ public class DbString extends DbValue {
                 return this.equals(o);
             case NOT_EQUALS:
                 return (!this.equals(o));
+            case GTE:
+                return (this.value.compareTo(((DbString) o).value) >= 0);
+            case GT:
+                return (this.value.compareTo(((DbString) o).value) > 0);
+            case LTE:
+                return (this.value.compareTo(((DbString) o).value) <= 0);
+            case LT:
+                return (this.value.compareTo(((DbString) o).value) < 0);
             default:
                 return false;
         }

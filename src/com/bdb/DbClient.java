@@ -155,6 +155,35 @@ public class DbClient {
         return tuples;
     }
 
+    public List<Relation> showRelationsInADatabase(){
+        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        MyRelationBinding myRelationBinding = new MyRelationBinding();
+
+        List<Relation> relations = new ArrayList<Relation>();
+
+        try {
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+
+                relations.add((Relation) myRelationBinding.entryToObject(foundData));
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+
+        myDbEnv.close();
+        return relations;
+    }
+
 
     public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
         Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
