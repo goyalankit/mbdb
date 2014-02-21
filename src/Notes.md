@@ -5,22 +5,21 @@
 2. Implemented a cache of relations information.
 3. Added support for multiple relations. `Join` relations.
 4. implemented update commands
+5. implemented delete.
 
 #### TODO:
-
-1. Implement delete.
-2. Read on index creation and stuff.
+1. implement script command.
+2. close database later in the program without creating locking problems.
+3. Read on index creation and stuff.
 
 ### Test cases:
 1. Two relations mentioned but the condition is not given for the join.
-
 `select * from zipcodes, customers  where zipcodes.zip=54444;`
 
 2. zip here is ambiguious
-
 `select * from zipcodes, customers  where zip=54444;`
 
-
+3. select * from zipcodes, customers, orders where zipcodes.zip = customers.zip and orders.cno = customers.cno;
 
 
 

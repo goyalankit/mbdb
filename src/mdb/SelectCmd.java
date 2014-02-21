@@ -27,14 +27,20 @@ public class SelectCmd extends Select {
         List<Relation> relations = new ArrayList<Relation>();
         List<Predicate> predicates = new ArrayList<Predicate>();
 
-        for (c.FirstElement(getRel_list()); c.MoreElement(); c.NextElement() ) {
-            AstNode node = c.node ;
-            relations.add(Relation.getRelation(node.toString().trim()));
-
-        }
 
 
         try {
+
+            for (c.FirstElement(getRel_list()); c.MoreElement(); c.NextElement() ) {
+                AstNode node = c.node ;
+                Relation rel = Relation.getRelation(node.toString().trim());
+                if(null == rel){
+                    throw new MyDatabaseException("Relation not found");
+                }
+                relations.add(rel);
+
+            }
+
             AstNode m = getWherePred();
             Predicate p = null;
             for (c.FirstElement(m.arg[0]); c.MoreElement(); c.NextElement() ) {
