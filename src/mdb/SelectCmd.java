@@ -30,26 +30,32 @@ public class SelectCmd extends Select {
 
         }
 
-        AstNode m = getWherePred();
-        Predicate p = null;
-        for (c.FirstElement(m.arg[0]); c.MoreElement(); c.NextElement() ) {
-            if(c.node instanceof SimpleClause)
-            {
-                p = getSimplePredicate(c, relations);
+
+        try {
+            AstNode m = getWherePred();
+            Predicate p = null;
+            for (c.FirstElement(m.arg[0]); c.MoreElement(); c.NextElement() ) {
+                if(c.node instanceof SimpleClause)
+                {
+                    p = getSimplePredicate(c, relations);
+                }
+                else if(c.node instanceof JoinClause)
+                {
+                    p = getJoinPredicate(c, relations);
+
+                }else
+                {
+                    System.err.println("Predicate not allowed");
+                }
+
+                if(null != p)
+                    predicates.add(p);
+
+                System.out.println();
             }
-            else if(c.node instanceof JoinClause)
-            {
-                p = getJoinPredicate(c, relations);
-
-            }else
-            {
-                System.err.println("Predicate not allowed");
-            }
-
-            if(null != p)
-                predicates.add(p);
-
-            System.out.println();
+        } catch (MyDatabaseException e) {
+            e.printStackTrace();
+            return;
         }
 
         SelectQueryProcessor sqp = new SelectQueryProcessor(QueryType.SELECT, relations, predicates);
@@ -57,7 +63,7 @@ public class SelectCmd extends Select {
         sqp.process();
     }
 
-    private Predicate getSimplePredicate(AstCursor c, List<Relation> relations) {
+    private Predicate getSimplePredicate(AstCursor c, List<Relation> relations) throws MyDatabaseException{
         Predicate p;
         SimpleClause simpleClause = (SimpleClause)c.node;
         String lhs = simpleClause.getField_spec().toString();
@@ -80,7 +86,7 @@ public class SelectCmd extends Select {
         return p;
     }
 
-    private Predicate getJoinPredicate(AstCursor c, List<Relation> relations) {
+    private Predicate getJoinPredicate(AstCursor c, List<Relation> relations) throws MyDatabaseException {
         Predicate p;
         JoinClause joinClause = (JoinClause)c.node;
         String lhs_column, lhs_relation, rhs_column, rhs_relation;
@@ -99,7 +105,7 @@ public class SelectCmd extends Select {
         String rhs = joinClause.arg[1].toString();
         s = null;
         if(lhs.contains(".")){
-            s = lhs.split("\\.");
+            s = rhs.split("\\.");
             rhs_relation = s[0].trim();
             rhs_column = s[1].trim();
         }else{
@@ -109,7 +115,7 @@ public class SelectCmd extends Select {
 
         p = new Predicate(PredType.JOIN, relations, lhs_relation, lhs_column,
                                         rhs_relation, rhs_column,
-                                        OpType.getOp(joinClause.getEQ().toString().trim()));
+                                        OpType.getOp(joinClause.getEQ().getTokenName().trim()));
         return p;
     }
 

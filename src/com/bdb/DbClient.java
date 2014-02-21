@@ -161,15 +161,27 @@ public class DbClient {
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
         Set<Tuple> tuples = new HashSet<Tuple>();
+
+        boolean selectAll = false;
+
+        if(null == predicates || predicates.size() == 0)
+            selectAll = true;
+
+
+
         try { // always want to make sure the cursor gets closed
             while (cursor.getNext(foundKey, foundData,
                     LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
                 boolean includeTuple = true;
-                for(Predicate p : predicates){
-                    if(!p.applyLocal(t))
-                        includeTuple = false;
+
+                if(!selectAll){
+                    for(Predicate p : predicates){
+                        if(!p.applyLocal(t))
+                            includeTuple = false;
+                    }
                 }
+
                 if(includeTuple) tuples.add(t);
 
             }

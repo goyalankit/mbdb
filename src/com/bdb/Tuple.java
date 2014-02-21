@@ -16,6 +16,10 @@ public class Tuple {
         this.dbValues = dbValues;
     }
 
+    /* Don't use this directly. It is used to create joined tuples. */
+    protected Tuple(){
+    }
+
     @Override
     public String toString() {
         String str = "";
@@ -44,4 +48,5 @@ public class Tuple {
     public void setRelationName(String relationName) {
         this.relationName = relationName;
     }
+
 }

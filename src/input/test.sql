@@ -1,2 +1,2 @@
-select * from zipcodes where zip=54444 and city="Columbia";
+select * from zipcodes, customers where zipcodes.zip=customers.zip;
 .

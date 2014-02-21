@@ -6,7 +6,7 @@ package com.bdb;
 public class DbInt extends DbValue {
     Integer value;
 
-    public DbInt(Integer value) {
+    private DbInt(Integer value) {
         this.value = value;
     }
 
