@@ -2,12 +2,14 @@
 
 #### Completed
 1. Conjunctive single relation select query is functional.
+2. Implemented a cache of relations information.
+3. Added support for multiple relations. `Join` relations.
+4. implemented update commands
 
 #### TODO:
-1. Add support for multiple relations. `Join` relations.
-2. Implement delete and update commands
-3. Verify if we need support for Disjunctive queries.
-4. Read on index creation and stuff.
+
+1. Implement delete.
+2. Read on index creation and stuff.
 
 ### Test cases:
 1. Two relations mentioned but the condition is not given for the join.

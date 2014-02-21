@@ -23,6 +23,7 @@ public class DbClient {
 
     private DbEnv myDbEnv = new DbEnv();
     public static String dbEnvFilename = "mydbenv";
+    private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
     public DbClient(String dbEnvFilename, String relation) {
         if(this.dbEnvFilename == null){
@@ -200,9 +201,6 @@ public class DbClient {
         myDbEnv.close();
     }
 
-
-
-
     public Set<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
@@ -284,6 +282,14 @@ public class DbClient {
      * */
 
     public Relation getRelation(String rel_name){
+
+        //return if present in cache.
+        //TODO: invalidate the cache as soon as database get's changed
+        if(relationsCache.get(rel_name) != null){
+            System.out.println("Returning from cache!");
+            return relationsCache.get(rel_name);
+        }
+
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -309,6 +315,15 @@ public class DbClient {
             cursor.close();
         }
         myDbEnv.close();
+
+        //update the cache.
+        if(null != foundRelation) relationsCache.put(rel_name, foundRelation);
+
         return foundRelation;
     }
+
+    public static void invalidateCahe(){
+        relationsCache = new HashMap<String, Relation>();
+    }
+
 }

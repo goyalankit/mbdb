@@ -22,9 +22,11 @@ public class OpenCmd extends Open {
 
         if (f.exists() && f.isDirectory()) {
             DbClient.dbEnvFilename = f.getName();
+            DbClient.invalidateCahe();
         }else{
             try {
                 DbClient.dbEnvFilename = null;
+                DbClient.invalidateCahe();
                 throw new MyDatabaseException("Database doesn't exist: "+f.getName());
             } catch (MyDatabaseException e) {
                 System.err.println("Database named "+f.getName()+" doesn't exist");
