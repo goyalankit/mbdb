@@ -71,9 +71,24 @@ public class Relation {
         str += "Name: "+name+"\n";
         str += "NumFields: "+numFields+"\n";
         for (int i = 0; i < columns.length; i++) {
-            str += "Columns: "+columns[i].name+" - "+ columns[i].type +"\n";
+            str += "Column: "+columns[i].name+" - "+ columns[i].type +"\n";
         }
         return str;
+    }
+
+    public void showRelation(){
+        System.out.format("\n\n Relation: "+name +"%n");
+
+        String leftAlignFormat = "| %-15s | %-6s |%n";
+        System.out.format("\n+-----------------+--------+%n");
+        System.out.printf("| Column name     | Type   |%n");
+        System.out.format("+-----------------+--------+%n");
+
+        for (int i = 0; i < columns.length; i++) {
+            System.out.format(leftAlignFormat, columns[i].name , columns[i].type);
+        }
+        System.out.format("+-----------------+--------+%n");
+
     }
 
 
