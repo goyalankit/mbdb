@@ -230,6 +230,47 @@ public class DbClient {
         myDbEnv.close();
     }
 
+    public void deleteTuplesWithPredicate(List<Predicate> predicates) {
+
+        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+        Cursor cursor = myDbEnv.getDB().openCursor(txn, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        TupleBinding myTupleBinding = new MyTupleBinding();
+
+        try { // always want to make sure the cursor gets closed
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+
+                boolean includeTuple = true;
+
+                for(Predicate p : predicates){
+                    if(!p.applyLocal(t))
+                        includeTuple = false;
+                }
+
+                if(includeTuple){
+                    myDbEnv.getDB().delete(txn, foundKey);
+                }
+            }
+
+        } catch (Exception e)
+        {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            txn.abort();
+            e.printStackTrace();
+        } finally
+        {
+            cursor.close();
+        }
+
+        txn.commit();
+        myDbEnv.close();
+    }
+
     public Set<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
@@ -306,18 +347,17 @@ public class DbClient {
 
     /**
      *
+     * @param rel_name
      * getRelation : get a relation object from BDB based on the name.
      *
      * */
 
     public Relation getRelation(String rel_name){
 
-        //return if present in cache.
-        //TODO: invalidate the cache as soon as database get's changed
-        if(relationsCache.get(rel_name) != null){
-            System.out.println("Returning from cache!");
+        /* return if present in cache. */
+        if(relationsCache.get(rel_name) != null)
             return relationsCache.get(rel_name);
-        }
+
 
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
@@ -351,8 +391,13 @@ public class DbClient {
         return foundRelation;
     }
 
+    /**
+     * invalidate the relations cache. Done when database is changed.
+     * Currently no delete table is present.
+     */
     public static void invalidateCahe(){
         relationsCache = new HashMap<String, Relation>();
     }
+
 
 }

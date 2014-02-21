@@ -21,7 +21,7 @@ public class UpdateCmd extends Update {
         parseUpdateQuery();
     }
 
-    public void parseUpdateQuery(){
+    public void parseUpdateQuery() {
         AstCursor c = new AstCursor();
         List<Relation> relations = new ArrayList<Relation>(); //just to be able to use the same predicate
         List<Predicate> predicates = new ArrayList<Predicate>();
@@ -52,6 +52,7 @@ public class UpdateCmd extends Update {
             {
                 Asgn asgn = ((Asgn) c.node);
                 String fieldName = asgn.getField_name().toString().trim();
+
                 if(asgn.getLiteral() instanceof IntLit)
                     updates.put(fieldName, (new DbInt(Integer.parseInt(asgn.getLiteral().toString().trim()), fieldName)));
                 else if(asgn.getLiteral() instanceof StrLit)
@@ -74,9 +75,8 @@ public class UpdateCmd extends Update {
     }
 
 
-    private Predicate getSimplePredicate(AstCursor c, List<Relation> relations) throws MyDatabaseException{
+    private Predicate getSimplePredicate(AstCursor c, List<Relation> relations) throws MyDatabaseException {
         Predicate p;
-
         OneRelClause simpleClause = (OneRelClause)c.node;
 
         String lhs = simpleClause.getField_name().toString().trim();
