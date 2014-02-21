@@ -42,8 +42,6 @@ public class SelectQueryProcessor {
                 }
             }else if(p.getType().equals(PredType.JOIN)){
                 joinPredicates.add(p);
-            }else if(p.getType().equals(PredType.TAUTOLOGY)){
-
             }
         }
     }

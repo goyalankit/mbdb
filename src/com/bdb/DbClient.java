@@ -6,10 +6,7 @@ import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.je.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -152,9 +149,57 @@ public class DbClient {
         } finally {
             cursor.close();
         }
+
         myDbEnv.close();
         return tuples;
     }
+
+
+    public boolean updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
+
+        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+        Cursor cursor = myDbEnv.getDB().openCursor(txn, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+        TupleBinding myTupleBinding = new MyTupleBinding();
+        Set<Tuple> tuples = new HashSet<Tuple>();
+
+        try { // always want to make sure the cursor gets closed
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+
+                boolean includeTuple = true;
+
+                    for(Predicate p : predicates){
+                        if(!p.applyLocal(t))
+                            includeTuple = false;
+                    }
+
+                if(includeTuple){
+                    for(Column column : updates.keySet())
+                        t.getDbValues()[column.getIndex()] = updates.get(column);
+
+                    myTupleBinding.objectToEntry(t, theData);
+                    myDbEnv.getDB().put(txn, foundKey, theData);
+                }
+
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            txn.abort();
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+        txn.commit();
+        myDbEnv.close();
+        return true;
+    }
+
 
 
 
