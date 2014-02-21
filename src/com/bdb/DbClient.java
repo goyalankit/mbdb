@@ -155,15 +155,13 @@ public class DbClient {
     }
 
 
-    public boolean updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
-
+    public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
         Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
         Cursor cursor = myDbEnv.getDB().openCursor(txn, null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
-        Set<Tuple> tuples = new HashSet<Tuple>();
 
         try { // always want to make sure the cursor gets closed
             while (cursor.getNext(foundKey, foundData,
@@ -187,17 +185,19 @@ public class DbClient {
 
             }
 
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());
             txn.abort();
             e.printStackTrace();
-        } finally {
+        } finally
+        {
             cursor.close();
         }
+
         txn.commit();
         myDbEnv.close();
-        return true;
     }
 
 
