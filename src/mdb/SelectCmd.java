@@ -15,8 +15,11 @@ public class SelectCmd extends Select {
 
     public void execute () {
         super.execute();
-        parseSelectQuery();
-        //selectAllFromARelation();
+        if(getWherePred() == null)
+            selectAllFromARelation();
+        else
+            parseSelectQuery();
+
     }
 
     public void parseSelectQuery(){

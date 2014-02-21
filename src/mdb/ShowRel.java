@@ -3,6 +3,7 @@
 
 package mdb;
 
+import com.bdb.MyDatabaseException;
 import com.bdb.Relation;
 
 public class ShowRel extends Show {
@@ -13,13 +14,22 @@ public class ShowRel extends Show {
     public void execute () {
         
         super.execute();
+
         showRelationInformation();
 
     }
 
     public void showRelationInformation(){
         Relation rel = Relation.getRelation(getRel_name().toString().trim());
-        rel.showRelation();
+        if(null != rel)
+            rel.showRelation();
+        else{
+            try{
+                throw new MyDatabaseException("Relation doesn't exist");
+            }catch (MyDatabaseException mdbe){
+                mdbe.printStackTrace();
+            }
+        }
     }
 
     public Rel_name getRel_name () {

@@ -41,9 +41,9 @@ public class Relation {
      * @return
      */
      public static Relation getRelation(String relation){
-        DbClient dbClient = new DbClient("mydbenv","metadata");
-        return dbClient.getRelation(relation);
-    }
+         DbClient dbClient = new DbClient("mydbenv","metadata");
+         return dbClient.getRelation(relation);
+     }
 
     /**
      *  select * from a given table(Relation)

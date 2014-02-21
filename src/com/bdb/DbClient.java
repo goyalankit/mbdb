@@ -25,11 +25,13 @@ public class DbClient {
     private static DatabaseEntry theData = new DatabaseEntry();
 
     private DbEnv myDbEnv = new DbEnv();
-    private static int a = 0;
+    public static String dbEnvFilename = "mydbenv";
 
     public DbClient(String dbEnvFilename, String relation) {
-        dbEnvFilename = "mydbenv";
-        myDbEnvPath = new File(dbEnvFilename);
+        if(this.dbEnvFilename == null){
+            System.err.println("Choosing the default database mydbenv");
+        }
+                    myDbEnvPath = new File(this.dbEnvFilename);
         myDbEnv.setup(myDbEnvPath, // path to the environment home
                 false, relation);      // is this environment read-only?
     }
@@ -153,6 +155,8 @@ public class DbClient {
         myDbEnv.close();
         return tuples;
     }
+
+
 
     public Set<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);

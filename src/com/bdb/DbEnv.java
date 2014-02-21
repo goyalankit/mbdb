@@ -65,9 +65,7 @@ public class DbEnv {
         return  seq.get(txn, 1);
     }
 
-    public Environment getEnv() {
-        return myEnv;
-    }
+    public Environment getEnv() { return myEnv; }
 
     public Database getDB() {
         return myDatabase;
