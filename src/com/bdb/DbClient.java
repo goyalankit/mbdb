@@ -271,13 +271,13 @@ public class DbClient {
         myDbEnv.close();
     }
 
-    public Set<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
+    public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
-        Set<Tuple> tuples = new HashSet<Tuple>();
+        List<Tuple> tuples = new ArrayList<Tuple>();
 
         boolean selectAll = false;
 

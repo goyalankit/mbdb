@@ -70,3 +70,25 @@ zipcodes.zip,zipcodes.city,customers.cno,customers.cname,customers.street,custom
 67226,"Wichita",1111,"Charles","123 Main St.",67226,"316-636-5555",1000,"Jones",67226,"12-DEC-95"
 
 ```
+
+```
+select * from zipcodes where zipcodes.zip = zipcodes.zip;
+.
+
+zipcodes.zip,zipcodes.city,zipcodes.zip,zipcodes.city
+
+61111,"Fort Hays",61111,"Fort Hays"
+
+60606,"Fort Dodge",60606,"Fort Dodge"
+
+50302,"Kansas City",50302,"Kansas City"
+
+54444,"Columbia",54444,"Columbia"
+
+67226,"Wichita",67226,"Wichita"
+
+66002,"Liberal",66002,"Liberal"
+```
+
+```
+```

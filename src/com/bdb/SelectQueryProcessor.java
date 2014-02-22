@@ -14,7 +14,7 @@ public class SelectQueryProcessor {
     private QueryType type;
 
     private HashMap<Relation, Boolean> relationJoined;
-    private Set<Tuple> joinedTuples;
+    private List<Tuple> joinedTuples;
 
     public SelectQueryProcessor(QueryType type, List<Relation> relations, List<Predicate> predicates) {
         this.type = type;
@@ -46,8 +46,8 @@ public class SelectQueryProcessor {
     /**
      * pass the proper predicates.
      */
-    public void process() {
-        HashMap<Relation, Set<Tuple>> tuples = new HashMap<Relation, Set<Tuple>>();
+    public Set<Tuple> process() {
+        HashMap<Relation, List<Tuple>> tuples = new HashMap<Relation, List<Tuple>>();
 
         /* First apply the local predicates */
 
@@ -66,19 +66,19 @@ public class SelectQueryProcessor {
         if (joinPredicates.size() != 0)
             join(tuples);
 
-        if (relations.size() != 1)
-            cross(tuples);
-        else
-            printJoinTuples(joinedTuples);
+        cross(tuples);
+
+        printJoinTuples(joinedTuples);
+        return null;
     }
 
     /**
      * @param relationTuples perform join.
      */
-    public void join(HashMap<Relation, Set<Tuple>> relationTuples) {
+    public void join(HashMap<Relation, List<Tuple>> relationTuples) {
         //keep track of tuples from a join.
         relationJoined = new HashMap<Relation, Boolean>();
-        joinedTuples = new HashSet<Tuple>();
+        joinedTuples = new ArrayList<Tuple>();
 
         for (Predicate p : joinPredicates) {
 
@@ -86,10 +86,10 @@ public class SelectQueryProcessor {
             Relation r1 = p.getLhsRelation();
             Relation r2 = p.getRhsRelation();
 
-            Set<Tuple> tuples1 = relationJoined.containsKey(r1) ? joinedTuples : relationTuples.get(r1);
-            Set<Tuple> tuples2 = relationJoined.containsKey(r2) ? joinedTuples : relationTuples.get(r2);
+            List<Tuple> tuples1 = relationJoined.containsKey(r1) ? joinedTuples : relationTuples.get(r1);
+            List<Tuple> tuples2 = relationJoined.containsKey(r2) ? joinedTuples : relationTuples.get(r2);
 
-            Set<Tuple> filteredTuples = new HashSet<Tuple>();
+            List<Tuple> filteredTuples = new ArrayList<Tuple>();
 
             for (Tuple t1 : tuples1) {
                 for (Tuple t2 : tuples2) {
@@ -100,24 +100,19 @@ public class SelectQueryProcessor {
                 }
             }
 
-            //TODO: verify and remove this test. Don't need this since we are not iterating over relations.
-            //if (joinedTuples.size() != filteredTuples.size()) {
-                relationJoined.put(r1, true);
-                relationJoined.put(r2, true);
-          //  }
+            relationJoined.put(r1, true);
+            relationJoined.put(r2, true);
 
             joinedTuples = filteredTuples;
         }
-
-        //printJoinTuples(joinedTuples);
     }
 
     //TODO: Take the cross product for the tables that didn't participate in join.
-    public void cross(HashMap<Relation, Set<Tuple>> relationTuples) {
+    public void cross(HashMap<Relation, List<Tuple>> relationTuples) {
 
-        Set<Tuple> crossedTuplesResult = new HashSet<Tuple>();
+        List<Tuple> crossedTuplesResult = new ArrayList<Tuple>();
 
-        Set<Tuple> tupleSet1;
+        List<Tuple> tupleSet1;
 
         //if some tuples have been joined
         if (joinedTuples != null && joinedTuples.size() > 0)
@@ -133,7 +128,8 @@ public class SelectQueryProcessor {
             //Relation in the list that has not been joined.
             if ((relationJoined == null) || !relationJoined.containsKey(rel)) {
 
-                if (i > 2 && crossedTuplesResult.size() > 0) tupleSet1 = crossedTuplesResult; //TODO: may be there are no tuples
+                if (i > 2 && crossedTuplesResult.size() > 0)
+                    tupleSet1 = crossedTuplesResult; //TODO: may be there are no tuples
 
                 for (Tuple joinedTuple : tupleSet1) {
                     for (Tuple t2 : relationTuples.get(rel)) {
@@ -145,11 +141,9 @@ public class SelectQueryProcessor {
 
         /* If no tuple was added above then don't change the joined tuple */
         joinedTuples = crossedTuplesResult.size() > 0 ? crossedTuplesResult : tupleSet1;
-
-        printJoinTuples(joinedTuples);
     }
 
-    public void printJoinTuples(Set<Tuple> tuples) {
+    public void printJoinTuples(List<Tuple> tuples) {
 
         JoinedTuple jt = null;
 

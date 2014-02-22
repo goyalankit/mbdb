@@ -16,7 +16,7 @@ public class SelectCmd extends Select {
     public void execute () {
         super.execute();
         if(getWherePred() == null)
-            selectAllFromARelation();
+            selectAllFromARelation(); //TODO: make this a multi relation select * | cross product
         else
             parseSelectQuery();
 
@@ -26,8 +26,10 @@ public class SelectCmd extends Select {
         AstCursor c = new AstCursor();
         List<Relation> relations = new ArrayList<Relation>();
         List<Predicate> predicates = new ArrayList<Predicate>();
+        List<Projection> projectionList = new ArrayList<Projection>();
 
         try {
+
 
             for (c.FirstElement(getRel_list()); c.MoreElement(); c.NextElement() ) {
                 AstNode node = c.node ;
@@ -37,6 +39,17 @@ public class SelectCmd extends Select {
                 }
                 relations.add(rel);
             }
+
+            /* create project list */
+            AstNode pnode = (AstNode)getProj_list();
+            if(pnode instanceof All)
+                System.out.println("project all");
+            else if(pnode instanceof Plist){
+                for (c.FirstElement(pnode.arg[0]); c.MoreElement(); c.NextElement() ) {
+                    projectionList.add(Projection.create(relations, c.node.toString().trim()));
+                }
+            }
+
 
             AstNode m = getWherePred();
             Predicate p = null;

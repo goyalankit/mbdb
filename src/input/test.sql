@@ -1,2 +1,2 @@
-select * from zipcodes where zipcodes.zip = zipcodes.zip;
+select * from zipcodes, customers, employees where zipcodes.zip=customers.zip;
 .
