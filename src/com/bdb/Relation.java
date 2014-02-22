@@ -48,12 +48,13 @@ public class Relation {
     /**
      *  select * from a given table(Relation)
      */
-    public void selectStar(){
+    public List<Tuple> selectStar(){
         DbClient dbClient = new DbClient("mydbenv", name);
         List<Tuple> tupleList = dbClient.selectStarFromRelation();
         System.out.println(tupleList.size() + "records found. \n");
         for(Tuple tuple : tupleList)
             System.out.println(tuple +"\n" );
+        return tupleList;
     }
 
     public Column getColumn(String name){

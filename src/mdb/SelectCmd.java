@@ -17,6 +17,7 @@ public class SelectCmd extends Select {
         super.execute();
         if(getWherePred() == null)
             selectAllFromARelation(); //TODO: make this a multi relation select * | cross product
+                                     //Would need to project
         else
             parseSelectQuery();
 
@@ -143,6 +144,11 @@ public class SelectCmd extends Select {
     }
 
     public void selectAllFromARelation(){
+
+        //TODO: need to implement cross product.
+        //TODO: need to give project.
+        //TODO: BETTER MERGE WITH THE GENERAL CASE. Keep it DRY.
+
         System.out.println("\nRelation Name : " + getRel_list().arg[0].arg[0].toString().trim());
         System.out.println("--------------------------------------------------");
         Relation relation = Relation.getRelation(getRel_list().arg[0].arg[0].toString().trim());
@@ -152,7 +158,7 @@ public class SelectCmd extends Select {
                 str += cl.getName() + ",";
             str = str.substring(0, str.lastIndexOf(",")) + ")";
             System.out.println(str);
-            relation.selectStar();
+            //Projection.project(relation.selectStar());
         }
         else{
             System.err.println("Relation doesn't exists");
