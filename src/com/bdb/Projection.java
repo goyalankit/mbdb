@@ -1,5 +1,6 @@
 package com.bdb;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class Projection {
 
         boolean isAmbigous = false;
 
-        if(cname!=null && cname.contains("\\.")){
+        if(cname!=null && cname.contains(".")){
             String[] s = cname.split("\\.");
             relName = s[0];
             colName = s[1];
@@ -52,10 +53,63 @@ public class Projection {
         }
 
         if(p.column == null)
-            throw new MyDatabaseException("Column to be projced not present in the relations");
+            throw new MyDatabaseException("Column to be projected not present in the relations");
         else if(isAmbigous)
-            throw new MyDatabaseException("Column to be projced is/are ambiguous");
+            throw new MyDatabaseException("Column to be projected is/are ambiguous");
 
         return p;
+    }
+
+    public static List<Tuple> project(List<Tuple> finalTuples, List<Projection> projectionList){
+
+        List<Tuple> projectedTuples = new ArrayList<Tuple>();
+
+        if(null == finalTuples || finalTuples.size() == 0)
+            return projectedTuples;
+
+
+        DbValue[] dbValuesList;
+
+        Tuple t = finalTuples.get(0);
+        dbValuesList = t.getDbValues();
+
+        List<Integer> remInd = new ArrayList<Integer>();
+        for(Projection p : projectionList)
+        {
+            for (int i = 0; i < dbValuesList.length; i++)
+            {
+                if(dbValuesList[i].columnName.equals(p.column.getName())
+                        || dbValuesList[i].columnName.equals(p.relation.getName() + "." + p.column.getName()))
+                {
+
+                    remInd.add(i);
+
+                } else
+                {
+                    continue;
+                }
+            }
+        }
+
+        for (int i : remInd){
+            DbValue dbValue = finalTuples.get(0).getDbValues()[i];
+            if(dbValue instanceof DbInt)
+                System.out.print(((DbInt)dbValue).columnName + "\t");
+            else
+                System.out.print(((DbString)dbValue).columnName + "\t");
+        }
+        System.out.println("\n"); //add a new line.
+
+        for(Tuple t1 : finalTuples){
+            for (int i : remInd){
+                DbValue dbValue = t1.getDbValues()[i];
+                if(dbValue instanceof DbInt)
+                    System.out.print(((DbInt)dbValue).value + "\t");
+                else
+                    System.out.print(((DbString)dbValue).value + "\t");
+            }
+            System.out.print("\n");
+        }
+        return projectedTuples;
     }
 }

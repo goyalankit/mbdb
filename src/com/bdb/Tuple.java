@@ -1,5 +1,7 @@
 package com.bdb;
 
+import java.util.List;
+
 /**
  * Created by ankit on 2/3/14.
  */
@@ -31,6 +33,11 @@ public class Tuple {
         }
         str = str.substring(0, str.lastIndexOf(","));
         return str;
+    }
+
+    public static void printResults(List<Tuple> tuples) {
+        for (Tuple t : tuples)
+            System.out.println(t);
     }
 
     public DbValue[] getDbValues() {

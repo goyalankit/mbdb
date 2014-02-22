@@ -46,7 +46,7 @@ public class SelectQueryProcessor {
     /**
      * pass the proper predicates.
      */
-    public Set<Tuple> process() {
+    public List<Tuple> process() {
         HashMap<Relation, List<Tuple>> tuples = new HashMap<Relation, List<Tuple>>();
 
         /* First apply the local predicates */
@@ -68,8 +68,8 @@ public class SelectQueryProcessor {
 
         cross(tuples);
 
-        printJoinTuples(joinedTuples);
-        return null;
+        //printJoinTuples(joinedTuples);
+        return joinedTuples;
     }
 
     /**
@@ -107,7 +107,6 @@ public class SelectQueryProcessor {
         }
     }
 
-    //TODO: Take the cross product for the tables that didn't participate in join.
     public void cross(HashMap<Relation, List<Tuple>> relationTuples) {
 
         List<Tuple> crossedTuplesResult = new ArrayList<Tuple>();
@@ -141,24 +140,6 @@ public class SelectQueryProcessor {
 
         /* If no tuple was added above then don't change the joined tuple */
         joinedTuples = crossedTuplesResult.size() > 0 ? crossedTuplesResult : tupleSet1;
-    }
-
-    public void printJoinTuples(List<Tuple> tuples) {
-
-        JoinedTuple jt = null;
-
-        for (Tuple t : tuples) {
-            if (null == jt) ((JoinedTuple) t).printHeader();
-            jt = (JoinedTuple) t;
-            System.out.println(jt + "\n");
-        }
-
-    }
-
-
-    public void printResults(Set<Tuple> tuples) {
-        for (Tuple t : tuples)
-            System.out.println(t);
     }
 
 }

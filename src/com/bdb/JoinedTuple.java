@@ -1,5 +1,7 @@
 package com.bdb;
 
+import java.util.List;
+
 /**
  * Created by ankit on 2/18/14.
  *
@@ -84,6 +86,29 @@ public class JoinedTuple extends Tuple {
     public void printHeader(){
         System.out.println(getHeader());
     }
+
+
+    public static void printJoinTuples(List<Tuple> tuples) {
+        if(tuples.size() <= 0){
+            System.out.println("Query resulted in 0 results");
+            return;
+        }
+        if(!(tuples.get(0) instanceof JoinedTuple)){
+            Tuple.printResults(tuples);
+            return;
+        }
+
+        JoinedTuple jt = null;
+
+        for (Tuple t : tuples) {
+            if (null == jt) ((JoinedTuple) t).printHeader();
+            jt = (JoinedTuple) t;
+            System.out.println(jt + "\n");
+        }
+    }
+
+
+
 
     public String toString() {
         String str = "";

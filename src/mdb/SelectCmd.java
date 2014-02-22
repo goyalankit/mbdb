@@ -79,7 +79,11 @@ public class SelectCmd extends Select {
 
         SelectQueryProcessor sqp = new SelectQueryProcessor(QueryType.SELECT, relations, predicates);
         sqp.build();
-        sqp.process();
+
+        List<Tuple> finalTuples = sqp.process(); //process the query.
+        //JoinedTuple.printJoinTuples(finalTuples);
+        Projection.project(finalTuples, projectionList);
+        //JoinedTuple.printJoinTuples(Projection.project(finalTuples, projectionList)); //project and print.
     }
 
     private Predicate getSimplePredicate(AstCursor c, List<Relation> relations) throws MyDatabaseException{

@@ -92,3 +92,7 @@ zipcodes.zip,zipcodes.city,zipcodes.zip,zipcodes.city
 
 ```
 ```
+
+//TODO
+failinf
+select zipcodes.zip from zipcodes, customers where zipcodes.zip = 67226;

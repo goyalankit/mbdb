@@ -12,6 +12,7 @@
 2. close database later in the program without creating locking problems.
 3. Read on index creation and stuff.
 
+
 ### Test cases:
 1. Two relations mentioned but the condition is not given for the join.
 `select * from zipcodes, customers  where zipcodes.zip=54444;`
@@ -20,6 +21,8 @@
 `select * from zipcodes, customers  where zip=54444;`
 
 3. select * from zipcodes, customers, orders where zipcodes.zip = customers.zip and orders.cno = customers.cno;
+
+4. select zipcodes.zip from zipcodes;
 
 
 
