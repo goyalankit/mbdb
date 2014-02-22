@@ -24,64 +24,63 @@ public class SelectQueryProcessor {
         this.joinPredicates = new ArrayList<Predicate>();
     }
 
-    public void build(){
+    public void build() {
         /* Get the relation objects */
-
-        for(Predicate p : predicates)
-        {
-            if(p.getType().equals(PredType.SIMPLE)){
+        for (Predicate p : predicates) {
+            if (p.getType().equals(PredType.SIMPLE)) {
                 Relation r = p.getLhsRelation();
-                if(null != localPredicates.get(r))
-                {
+                //add to the list of local predicates.
+                if (null != localPredicates.get(r)) {
                     localPredicates.get(r).add(p);
-                }
-                else
-                {
+                } else {
                     localPredicates.put(r, new ArrayList<Predicate>());
                     localPredicates.get(r).add(p);
                 }
-            }else if(p.getType().equals(PredType.JOIN)){
+            } else if (p.getType().equals(PredType.JOIN)) {
+                //add to the list of join predicates.
                 joinPredicates.add(p);
             }
         }
     }
+
     /**
-    *
-    * pass the proper predicates.
-    *
-    * */
-    public void process(){
+     * pass the proper predicates.
+     */
+    public void process() {
         HashMap<Relation, Set<Tuple>> tuples = new HashMap<Relation, Set<Tuple>>();
 
         /* First apply the local predicates */
 
-        for (Relation rel : relations){
+        for (Relation rel : relations) {
             DbClient dbClient = new DbClient("mydbenv", rel.getName());
+
+            /*
+                Get the tuples for ALL the relations.
+                Return all the tuples based on predicates. otherwise all tuples
+                if no predicate is present.
+            */
             tuples.put(rel, dbClient.getTuplesWithPredicate(localPredicates.get(rel)));
-
-            //TODO this condition should be handled in cross product
-            if(joinPredicates.size()==0)
-                printResults(tuples.get(rel));
-
         }
 
         /* call to apply join predicates */
-        if(joinPredicates.size()!=0)
-                join(tuples);
-        //cross();
+        if (joinPredicates.size() != 0)
+            join(tuples);
+
+        if (relations.size() != 1)
+            cross(tuples);
+        else
+            printJoinTuples(joinedTuples);
     }
 
     /**
-     *
-     * @param relationTuples
-     * perform join.
+     * @param relationTuples perform join.
      */
-    public void join(HashMap<Relation, Set<Tuple>> relationTuples){
+    public void join(HashMap<Relation, Set<Tuple>> relationTuples) {
         //keep track of tuples from a join.
         relationJoined = new HashMap<Relation, Boolean>();
         joinedTuples = new HashSet<Tuple>();
 
-        for(Predicate p : joinPredicates){
+        for (Predicate p : joinPredicates) {
 
             /* get the relations in join predicate */
             Relation r1 = p.getLhsRelation();
@@ -92,56 +91,79 @@ public class SelectQueryProcessor {
 
             Set<Tuple> filteredTuples = new HashSet<Tuple>();
 
-            for(Tuple t1 : tuples1)
-            {
-                for(Tuple t2 : tuples2)
-                {
+            for (Tuple t1 : tuples1) {
+                for (Tuple t2 : tuples2) {
                     Tuple ntuple = p.applyJoin(t1, t2);
-                    if(null != ntuple)
-                    {
+                    if (null != ntuple) {
                         filteredTuples.add(ntuple);
-
                     }
                 }
             }
-            if(joinedTuples.size() != filteredTuples.size()){
+
+            //TODO: verify and remove this test. Don't need this since we are not iterating over relations.
+            //if (joinedTuples.size() != filteredTuples.size()) {
                 relationJoined.put(r1, true);
-                relationJoined.put(r2, false);
-            }
+                relationJoined.put(r2, true);
+          //  }
 
             joinedTuples = filteredTuples;
         }
 
-        printJoinTuples(joinedTuples);
+        //printJoinTuples(joinedTuples);
     }
 
     //TODO: Take the cross product for the tables that didn't participate in join.
-    public void cross(){
-        for(Relation rel : relations){
-           if(!relationJoined.containsKey(rel)){
-               for(Tuple joinedTuple : joinedTuples){
-               //joinedTuple = new JoinedTuple(joinedTuple, t2, lhsColumn, rhsColumn);
-               }
-           }
+    public void cross(HashMap<Relation, Set<Tuple>> relationTuples) {
+
+        Set<Tuple> crossedTuplesResult = new HashSet<Tuple>();
+
+        Set<Tuple> tupleSet1;
+
+        //if some tuples have been joined
+        if (joinedTuples != null && joinedTuples.size() > 0)
+            tupleSet1 = joinedTuples; //use joined tuple.
+        else
+            tupleSet1 = relationTuples.get(relations.get(0)); //use tuples from first relation.
+
+        //tupleSet1 should never be empty.
+
+        for (int i = 1; i < relations.size(); i++) {
+            Relation rel = relations.get(i);
+
+            //Relation in the list that has not been joined.
+            if ((relationJoined == null) || !relationJoined.containsKey(rel)) {
+
+                if (i > 2 && crossedTuplesResult.size() > 0) tupleSet1 = crossedTuplesResult; //TODO: may be there are no tuples
+
+                for (Tuple joinedTuple : tupleSet1) {
+                    for (Tuple t2 : relationTuples.get(rel)) {
+                        crossedTuplesResult.add(new JoinedTuple(joinedTuple, t2, null, null));
+                    }
+                }
+            }
         }
 
+        /* If no tuple was added above then don't change the joined tuple */
+        joinedTuples = crossedTuplesResult.size() > 0 ? crossedTuplesResult : tupleSet1;
+
+        printJoinTuples(joinedTuples);
     }
 
-    public void printJoinTuples(Set<Tuple> tuples){
+    public void printJoinTuples(Set<Tuple> tuples) {
 
         JoinedTuple jt = null;
 
-        for(Tuple t : tuples){
-            if(null == jt) ((JoinedTuple) t).printHeader();
+        for (Tuple t : tuples) {
+            if (null == jt) ((JoinedTuple) t).printHeader();
             jt = (JoinedTuple) t;
-            System.out.println(jt+"\n");
+            System.out.println(jt + "\n");
         }
 
     }
 
 
-    public void printResults(Set<Tuple> tuples){
-        for(Tuple t : tuples)
+    public void printResults(Set<Tuple> tuples) {
+        for (Tuple t : tuples)
             System.out.println(t);
     }
 

@@ -27,8 +27,6 @@ public class SelectCmd extends Select {
         List<Relation> relations = new ArrayList<Relation>();
         List<Predicate> predicates = new ArrayList<Predicate>();
 
-
-
         try {
 
             for (c.FirstElement(getRel_list()); c.MoreElement(); c.NextElement() ) {
@@ -38,7 +36,6 @@ public class SelectCmd extends Select {
                     throw new MyDatabaseException("Relation not found");
                 }
                 relations.add(rel);
-
             }
 
             AstNode m = getWherePred();

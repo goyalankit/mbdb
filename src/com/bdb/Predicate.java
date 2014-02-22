@@ -32,7 +32,9 @@ public class Predicate {
             if(null != lhsRelation && rel.getName().equals(lhsRelation)){
                 this.lhsRelation = rel;
                 this.lhsColumn = rel.getColumn(lhsColumn);
-            }else if(null != rhsRelation && rel.getName().equals(rhsRelation)){
+            }
+
+            if(null != rhsRelation && rel.getName().equals(rhsRelation)){
                 this.rhsRelation = rel;
                 this.rhsColumn = rel.getColumn(rhsColumn);
             }
