@@ -6,11 +6,12 @@
 3. Added support for multiple relations. `Join` relations.
 4. implemented update commands
 5. implemented delete.
+6. implement script command.
 
 #### TODO:
-1. implement script command.
-2. close database later in the program without creating locking problems.
-3. Read on index creation and stuff.
+0. Check for database open/close commands. Figure out what to do with them.
+1. close database later in the program without creating locking problems.
+2. Read on index creation and stuff.
 
 
 ### Test cases:

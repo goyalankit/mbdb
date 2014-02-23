@@ -179,7 +179,8 @@ public class Main {
         //         args array is adjusted accordingly.
 
 
-
+//      DEBUG:
+//       To simply run the script from src/input/ folder for testing.
 //        try {
 //            userInput =
 //                    new BufferedReader( new FileReader("src/input/testscript1.sql") );
