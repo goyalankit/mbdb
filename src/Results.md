@@ -91,7 +91,48 @@ zipcodes.zip,zipcodes.city,zipcodes.zip,zipcodes.city
 ```
 
 ```
+ select * from customers, orders where customers.cno = orders.cno;
+ .
+
+ 1111	"Charles"	"123 Main St."	67226	"316-636-5555"	1020	1111	1000	"10-DEC-94"	"12-DEC-94"
+ 1111	"Charles"	"123 Main St."	67226	"316-636-5555"	1021	1111	1000	"12-JAN-95"	"15-JAN-95"
+ 2222	"Bertram"	"237 Ash Avenue"	67226	"316-689-5555"	1022	2222	1001	"13-FEB-95"	"20-FEB-95"
+ 3333	"Barbara"	"111 Inwood St."	60606	"316-111-1234"	1023	3333	1000	"20-JUN-97"	"30-SEP-96"
+
 ```
+
+```
+mdb> select * from orders;
+ > .
+project all
+ono	cno	eno	received	shipped
+
+1020	1111	1000	"10-DEC-94"	"12-DEC-94"
+1021	1111	1000	"12-JAN-95"	"15-JAN-95"
+1022	2222	1001	"13-FEB-95"	"20-FEB-95"
+1023	3333	1000	"20-JUN-97"	"30-SEP-96"
+
+```
+```
+mdb> select * from orders, odetails where odetails.ono = orders.ono;
+ > .
+project all
+
+odetails.ono	odetails.pno	odetails.qty	orders.ono	orders.cno	orders.eno	orders.received	orders.shipped
+
+1020	10506	1	1020	1111	1000	"10-DEC-94"	"12-DEC-94"
+1020	10507	1	1020	1111	1000	"10-DEC-94"	"12-DEC-94"
+1020	10508	2	1020	1111	1000	"10-DEC-94"	"12-DEC-94"
+1020	10509	3	1020	1111	1000	"10-DEC-94"	"12-DEC-94"
+1021	10601	4	1021	1111	1000	"12-JAN-95"	"15-JAN-95"
+1022	10601	1	1022	2222	1001	"13-FEB-95"	"20-FEB-95"
+1022	10701	1	1022	2222	1001	"13-FEB-95"	"20-FEB-95"
+1023	10800	1	1023	3333	1000	"20-JUN-97"	"30-SEP-96"
+1023	10900	1	1023	3333	1000	"20-JUN-97"	"30-SEP-96"
+```
+
+
+
 
 //TODO
 failinf

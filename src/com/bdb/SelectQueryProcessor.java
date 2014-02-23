@@ -109,7 +109,7 @@ public class SelectQueryProcessor {
 
     public void cross(HashMap<Relation, List<Tuple>> relationTuples) {
 
-        if(relationJoined.size() == relations.size())
+        if(relationJoined !=null && relationJoined.size() == relations.size())
             return;
 
         List<Tuple> crossedTuplesResult = new ArrayList<Tuple>();
