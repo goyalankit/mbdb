@@ -180,14 +180,14 @@ public class Main {
 
 
 
-        try {
-            userInput =
-                    new BufferedReader( new FileReader("src/input/test.sql") );
-        }
-        catch ( Exception e ) {
-            System.err.println( "File " + " not found:"
-                    + e.getMessage() );
-        }
+//        try {
+//            userInput =
+//                    new BufferedReader( new FileReader("src/input/testscript1.sql") );
+//        }
+//        catch ( Exception e ) {
+//            System.err.println( "File " + " not found:"
+//                    + e.getMessage() );
+//        }
 
         non_switch_args = 0;
         for ( i=0; i < argc; i++ ) {

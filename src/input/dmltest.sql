@@ -1,15 +1,8 @@
 // a simple test of the SQL MDB DML
 // 
 
-open "don/mdb.database";
+open "mydbenv";
 .
-
-insert into emp values ( 54, "Don" );
-.
-
-delete emp where empno = 4;
-.
-
 select  R.A, R.b, R.c, R.d, S.x, S.y
 from  R, S
 where R.d = 4 

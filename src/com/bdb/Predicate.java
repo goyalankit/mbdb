@@ -28,13 +28,23 @@ public class Predicate {
 
         if(type != PredType.JOIN) throw new IllegalArgumentException("Invalid type of predicate");
 
-        for(Relation rel : relations){
-            if(null != lhsRelation && rel.getName().equals(lhsRelation)){
+        for(Relation rel : relations)
+        {
+            if(null != lhsRelation && rel.getName().equals(lhsRelation))
+            {
+                this.lhsRelation = rel;
+                this.lhsColumn = rel.getColumn(lhsColumn);
+            }else if((null == lhsRelation) && (null != rel.getColumn(lhsColumn)))
+            {
                 this.lhsRelation = rel;
                 this.lhsColumn = rel.getColumn(lhsColumn);
             }
 
             if(null != rhsRelation && rel.getName().equals(rhsRelation)){
+                this.rhsRelation = rel;
+                this.rhsColumn = rel.getColumn(rhsColumn);
+            }else if((null == rhsRelation) && (null != rel.getColumn(rhsColumn)))
+            {
                 this.rhsRelation = rel;
                 this.rhsColumn = rel.getColumn(rhsColumn);
             }

@@ -15,10 +15,10 @@ public class SelectCmd extends Select {
 
     public void execute () {
         super.execute();
-        if(getWherePred() == null)
-            selectAllFromARelation(); //TODO: make this a multi relation select * | cross product
+//        if(getWherePred() == null)
+//            selectAllFromARelation(); //TODO: make this a multi relation select * | cross product
                                      //Would need to project
-        else
+//        else
             parseSelectQuery();
 
     }
@@ -53,26 +53,31 @@ public class SelectCmd extends Select {
 
 
             AstNode m = getWherePred();
-            Predicate p = null;
-            for (c.FirstElement(m.arg[0]); c.MoreElement(); c.NextElement() ) {
-                if(c.node instanceof SimpleClause)
-                {
-                    p = getSimplePredicate(c, relations);
+            if(null != m){
+                Predicate p = null;
+                for (c.FirstElement(m.arg[0]); c.MoreElement(); c.NextElement() ) {
+                    if(c.node instanceof SimpleClause)
+                    {
+                        p = getSimplePredicate(c, relations);
+                    }
+                    else if(c.node instanceof JoinClause)
+                    {
+                        p = getJoinPredicate(c, relations);
+
+                    }else
+                    {
+                        System.err.println("Predicate not allowed");
+                    }
+
+                    if(null != p)
+                        predicates.add(p);
+
+                    System.out.println();
                 }
-                else if(c.node instanceof JoinClause)
-                {
-                    p = getJoinPredicate(c, relations);
-
-                }else
-                {
-                    System.err.println("Predicate not allowed");
-                }
-
-                if(null != p)
-                    predicates.add(p);
-
-                System.out.println();
+            }else{
+                predicates = new ArrayList<Predicate>();
             }
+
         } catch (MyDatabaseException e) {
             e.printStackTrace();
             return;
@@ -133,7 +138,7 @@ public class SelectCmd extends Select {
             rhs_relation = s[0].trim();
             rhs_column = s[1].trim();
         }else{
-            rhs_column = lhs.trim();
+            rhs_column = rhs.trim();
         }
 
 

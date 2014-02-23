@@ -1,2 +1,2 @@
-    select zipcodes.zip from zipcodes;
+show customers;
 .

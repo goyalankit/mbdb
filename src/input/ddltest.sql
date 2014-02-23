@@ -15,12 +15,6 @@ create table dept ( deptno int,
              );
 .
 
-// create table some indices
-
-index emp.age;
-.
-index dept.dept_name;
-.
 
 // display schema for emp relation
 // useful if you forget fields of emp
@@ -32,11 +26,4 @@ show  emp;
 // useful if you forget entire database
 
 show;
-.
-
-script "insert_mydatabase_tuples";
-.
-commit;
-.
-exit;
 .

@@ -9,6 +9,7 @@ import java.util.List;
 public class Projection {
     private Relation relation;
     private Column column;
+    private boolean projectAll;
 
     public Projection(Relation relation, Column column) {
         this.relation = relation;
@@ -73,25 +74,34 @@ public class Projection {
         Tuple t = finalTuples.get(0);
         dbValuesList = t.getDbValues();
 
-        List<Integer> remInd = new ArrayList<Integer>();
-        for(Projection p : projectionList)
+        List<Integer> showIndices = new ArrayList<Integer>();
+
+        if(projectionList.size() > 0)
         {
-            for (int i = 0; i < dbValuesList.length; i++)
+            for(Projection p : projectionList)
             {
-                if(dbValuesList[i].columnName.equals(p.column.getName())
-                        || dbValuesList[i].columnName.equals(p.relation.getName() + "." + p.column.getName()))
+                for (int i = 0; i < dbValuesList.length; i++)
                 {
+                    if(dbValuesList[i].columnName.equals(p.column.getName())
+                            || dbValuesList[i].columnName.equals(p.relation.getName() + "." + p.column.getName()))
+                    {
 
-                    remInd.add(i);
+                        showIndices.add(i);
 
-                } else
-                {
-                    continue;
+                    } else
+                    {
+                        continue;
+                    }
                 }
             }
+        }else
+        {
+            for (int i = 0; i < dbValuesList.length; i++){ showIndices.add(i); }
         }
 
-        for (int i : remInd){
+
+
+        for (int i : showIndices){
             DbValue dbValue = finalTuples.get(0).getDbValues()[i];
             if(dbValue instanceof DbInt)
                 System.out.print(((DbInt)dbValue).columnName + "\t");
@@ -101,7 +111,7 @@ public class Projection {
         System.out.println("\n"); //add a new line.
 
         for(Tuple t1 : finalTuples){
-            for (int i : remInd){
+            for (int i : showIndices){
                 DbValue dbValue = t1.getDbValues()[i];
                 if(dbValue instanceof DbInt)
                     System.out.print(((DbInt)dbValue).value + "\t");
