@@ -1,2 +1,8 @@
 show customers;
 .
+show;
+.
+
+
+
+

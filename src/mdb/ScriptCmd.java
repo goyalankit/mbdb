@@ -9,6 +9,7 @@ public class ScriptCmd extends Script {
 
     public void execute () {
         super.execute();
+
     }
 
     public AstToken getSCRIPT () {
