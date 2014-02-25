@@ -47,6 +47,7 @@ public class Relation {
 
     /**
      *  select * from a given table(Relation)
+     *  Deprecated : using general join method.
      */
     public List<Tuple> selectStar(){
         DbClient dbClient = new DbClient("mydbenv", name);

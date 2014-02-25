@@ -4,7 +4,6 @@
 package mdb;
 
 import com.bdb.DbClient;
-import com.bdb.MyDatabaseException;
 
 import java.io.File;
 
@@ -16,24 +15,18 @@ public class OpenCmd extends Open {
     public void execute () {
         super.execute();
 
-
-        File f = new File(getSTRING_LITERAL().getTokenName().replace("\"",""));
-        System.out.println(f.getAbsolutePath());
-
-        if (f.exists() && f.isDirectory()) {
-            DbClient.dbEnvFilename = f.getName();
-            DbClient.invalidateCahe();
+        File envDir = new File(System.getProperty("user.dir") + File.separator + getSTRING_LITERAL().getTokenName().replace("\"", ""));
+        if(envDir.exists()){
+            DbClient.dbEnvFilename = envDir.getName();
         }else{
-            try {
-                DbClient.dbEnvFilename = null;
-                DbClient.invalidateCahe();
-                throw new MyDatabaseException("Database doesn't exist: "+f.getName());
-            } catch (MyDatabaseException e) {
-                System.err.println("Database named "+f.getName()+" doesn't exist");
-            }
+            System.out.println("Database doesn't exist. Creating a new one.");
+            envDir.mkdir(); //make directory if it doesn't exist yet
+            DbClient.dbEnvFilename = envDir.getName();
         }
-    }
 
+        //invalidate the relation cache.
+        DbClient.invalidateCahe();
+    }
 
 
     public AstToken getOPEN () {
