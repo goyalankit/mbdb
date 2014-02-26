@@ -91,11 +91,20 @@ public class SelectQueryProcessor {
 
             List<Tuple> filteredTuples = new ArrayList<Tuple>();
 
-            for (Tuple t1 : tuples1) {
-                for (Tuple t2 : tuples2) {
-                    Tuple ntuple = p.applyJoin(t1, t2);
-                    if (null != ntuple) {
+
+            if(r1.equals(r2)){
+                for (Tuple t1 : tuples1) {
+                    Tuple ntuple = p.applyJoin(t1, t1);
+                    if(null!=ntuple)
                         filteredTuples.add(ntuple);
+                }
+            }else{
+                for (Tuple t1 : tuples1) {
+                    for (Tuple t2 : tuples2) {
+                        Tuple ntuple = p.applyJoin(t1, t2);
+                        if (null != ntuple) {
+                            filteredTuples.add(ntuple);
+                        }
                     }
                 }
             }

@@ -113,22 +113,42 @@ public class Predicate {
     public Tuple applyJoin(Tuple t1, Tuple t2){
         DbValue dbValue1, dbValue2;
 
+        String relationName1, relationName2;
 
         if(t1 instanceof JoinedTuple){
-             dbValue1 = ((JoinedTuple) t1).getColumnValue(lhsRelation.getName() + "." + lhsColumn.getName());
+            dbValue1 = ((JoinedTuple) t1).getColumnValue(lhsRelation.getName() + "." + lhsColumn.getName());
+            relationName1 = lhsRelation.getName();
+
         }else{
             dbValue1 = t1.getDbValues()[lhsColumn.getIndex()];
+            relationName1 = t1.getRelationName();
         }
 
         if(t2 instanceof JoinedTuple){
             dbValue2 = ((JoinedTuple) t2).getColumnValue(rhsRelation.getName() + "." + rhsColumn.getName());
+            relationName2 = rhsRelation.getName();
         }else{
             dbValue2 = t2.getDbValues()[rhsColumn.getIndex()];
+            relationName2 = t2.getRelationName();
         }
 
         JoinedTuple joinedTuple = null;
 
+        if(relationName1.equals(relationName2)){
+            if(t1 instanceof JoinedTuple)
+                dbValue1 = ((JoinedTuple) t1).getColumnValue(lhsRelation.getName() + "." + lhsColumn.getName());
+            else
+                dbValue1 = t1.getDbValues()[lhsColumn.getIndex()];
 
+            if(t2 instanceof JoinedTuple)
+                dbValue2 = ((JoinedTuple) t1).getColumnValue(rhsRelation.getName() + "." + rhsColumn.getName());
+            else
+                dbValue2 = t1.getDbValues()[rhsColumn.getIndex()];
+
+            if(dbValue1.equals(dbValue2)){
+                return t1;
+            }
+        }
 
 
         if(dbValue1.equals(dbValue2)){
