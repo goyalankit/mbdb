@@ -51,7 +51,7 @@ public class Predicate {
         }
 
         if(null == this.rhsColumn || null == this.lhsColumn)
-            throw new MyDatabaseException("Join predicate is malformed.");
+            throw new MyDatabaseException("Join predicate is malformed. Columns not present in the mentioned relations.");
 
         this.type = type;
         this.operator = op;
@@ -112,8 +112,9 @@ public class Predicate {
 
     public Tuple applyJoin(Tuple t1, Tuple t2){
         DbValue dbValue1, dbValue2;
+
+
         if(t1 instanceof JoinedTuple){
-            //TODO: search the column by appending relation name
              dbValue1 = ((JoinedTuple) t1).getColumnValue(lhsRelation.getName() + "." + lhsColumn.getName());
         }else{
             dbValue1 = t1.getDbValues()[lhsColumn.getIndex()];
@@ -127,8 +128,12 @@ public class Predicate {
 
         JoinedTuple joinedTuple = null;
 
-        if(dbValue1.equals(dbValue2))
+
+
+
+        if(dbValue1.equals(dbValue2)){
             joinedTuple = new JoinedTuple(t1, t2, lhsColumn, rhsColumn);
+        }
 
         return joinedTuple;
     }

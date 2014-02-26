@@ -254,8 +254,7 @@ public class Main {
             // LanguageName statement loop
             input = ""; // initialize input string
 
-            
-            if(runningScript) System.out.println(line);
+
             // Step 6.1: print prompt
 
             System.out.print( "\n" + packageName + "> " );
@@ -266,6 +265,7 @@ public class Main {
                 line = "";
                 try {
                     line = userInput.readLine();
+                    if(runningScriptCmd) System.out.println(input);
                 }
                 catch ( Exception e ) {
                     //Hack to run script command.

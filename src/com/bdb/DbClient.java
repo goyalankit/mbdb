@@ -29,8 +29,15 @@ public class DbClient {
     private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
     public DbClient(String dbEnvFilename, String relation) {
-        if(this.dbEnvFilename == null){
-            System.err.println("Choosing the default database mydbenv");
+        if(this.dbEnvFilename == null || this.dbEnvFilename == "mydbenv"){
+            File envDir = new File("mydbenv");
+            if(!envDir.exists()){
+                System.out.println("Database doesn't exist. Creating a default one by name mydbenv.");
+                envDir.mkdir(); //make directory if it doesn't exist yet
+                DbClient.dbEnvFilename = envDir.getName();
+            }
+
+
         }
                     myDbEnvPath = new File(this.dbEnvFilename);
         myDbEnv.setup(myDbEnvPath, // path to the environment home
