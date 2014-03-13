@@ -24,7 +24,7 @@ public class DbClient {
     private static DatabaseEntry theKey = new DatabaseEntry();
     private static DatabaseEntry theData = new DatabaseEntry();
 
-    private DbEnv myDbEnv = new DbEnv();
+    private static DbEnv myDbEnv = new DbEnv();
     public static String dbEnvFilename = "mydbenv";
     private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
@@ -36,12 +36,31 @@ public class DbClient {
                 envDir.mkdir(); //make directory if it doesn't exist yet
                 DbClient.dbEnvFilename = envDir.getName();
             }
-
-
         }
                     myDbEnvPath = new File(this.dbEnvFilename);
         myDbEnv.setup(myDbEnvPath, // path to the environment home
                 false, relation);      // is this environment read-only?
+
+    }
+
+    //begin new transaction
+
+
+    private static void closeDb(){
+        myDbEnv.endTransaction();
+        myDbEnv.close();
+    }
+
+    public static void commit(){
+        myDbEnv.getUserTxn().abort();
+        System.out.println("** Transaction Committed **");
+        closeDb();
+    }
+
+    public static void abort(){
+        myDbEnv.getUserTxn().abort();
+        System.out.println("** Transaction Aborted **");
+        closeDb();
     }
 
     /**
@@ -56,7 +75,8 @@ public class DbClient {
         TupleBinding relationBinding = new MyRelationBinding();
 
         /* Initializing transaction. Multiple commands can be executed in same transaction. */
-        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+        //Transaction txn = userTxn;
 
         /* converting key to database entry object */
         EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(String.class);
@@ -71,7 +91,7 @@ public class DbClient {
         relationBinding.objectToEntry(relation, theData);
 
         try {
-            myDbEnv.getDB().put(txn, theKey, theData);
+            myDbEnv.getDB().put(myDbEnv.getUserTxn(), theKey, theData);
         } catch (DatabaseException dbe) {
             try {
                 System.out.println("Error putting entry ");
@@ -79,12 +99,13 @@ public class DbClient {
                 e.printStackTrace();
             }
 
-            txn.abort();
+            abort();
             throw dbe;
         }
-        txn.commit();
-        System.out.println("**DBClient: Table "+relation.getName() + "created.**");
-        myDbEnv.close();
+
+        //txn.commit();
+        System.out.println("**DBClient: Table "+relation.getName() + " created.**");
+
         return true;
     }
 
@@ -99,11 +120,11 @@ public class DbClient {
         TupleBinding myTupleBinding = new MyTupleBinding();
 
         /* Initializing transaction. Multiple commands can be executed in same transaction. */
-        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-
+//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+//        Transaction user = userTxn;
         /* converting key to database entry object */
         EntryBinding keybinding = TupleBinding.getPrimitiveBinding(Long.class);
-        Long myKey = myDbEnv.getRelationKey(txn);
+        Long myKey = myDbEnv.getRelationKey(myDbEnv.getUserTxn());
 
         try{
             keybinding.objectToEntry(myKey, theKey);
@@ -114,7 +135,7 @@ public class DbClient {
         myTupleBinding.objectToEntry(tuple, theData);
 
         try {
-            myDbEnv.getDB().put(txn, theKey, theData);
+            myDbEnv.getDB().put(myDbEnv.getUserTxn(), theKey, theData);
         } catch (DatabaseException dbe) {
             try {
                 System.out.println("Error putting entry ");
@@ -122,12 +143,12 @@ public class DbClient {
                 e.printStackTrace();
             }
 
-            txn.abort();
+            abort();
             throw dbe;
         }
-        txn.commit();
-        System.out.println("**DBClient: Tuple inserted.**");
-        myDbEnv.close();
+//        txn.commit();
+        System.out.println("**DBClient: Tuple inserted. Not commited yet**");
+//        myDbEnv.close();
 
         return true;
     }
@@ -140,7 +161,7 @@ public class DbClient {
     * */
 
     public List<Tuple> selectStarFromRelation(){
-        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -161,12 +182,12 @@ public class DbClient {
             cursor.close();
         }
 
-        myDbEnv.close();
+//        myDbEnv.close();
         return tuples;
     }
 
     public List<Relation> showRelationsInADatabase(){
-        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -190,14 +211,16 @@ public class DbClient {
             cursor.close();
         }
 
-        myDbEnv.close();
+
+//        myDbEnv.close();
         return relations;
     }
 
 
     public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
-        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-        Cursor cursor = myDbEnv.getDB().openCursor(txn, null);
+//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+//        Transaction txn = userTxn;
+        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -220,7 +243,7 @@ public class DbClient {
                         t.getDbValues()[column.getIndex()] = updates.get(column);
 
                     myTupleBinding.objectToEntry(t, theData);
-                    myDbEnv.getDB().put(txn, foundKey, theData);
+                    myDbEnv.getDB().put(myDbEnv.getUserTxn(), foundKey, theData);
                 }
 
             }
@@ -229,21 +252,22 @@ public class DbClient {
         {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());
-            txn.abort();
+            abort();
             e.printStackTrace();
         } finally
         {
             cursor.close();
         }
 
-        txn.commit();
-        myDbEnv.close();
+//        txn.commit();
+//        myDbEnv.close();
     }
 
     public void deleteTuplesWithPredicate(List<Predicate> predicates) {
 
-        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-        Cursor cursor = myDbEnv.getDB().openCursor(txn, null);
+//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
+//        Transaction txn = userTxn;
+        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -262,7 +286,7 @@ public class DbClient {
                 }
 
                 if(includeTuple){
-                    myDbEnv.getDB().delete(txn, foundKey);
+                    myDbEnv.getDB().delete(myDbEnv.getUserTxn(), foundKey);
                 }
             }
 
@@ -270,19 +294,19 @@ public class DbClient {
         {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());
-            txn.abort();
+            abort();
             e.printStackTrace();
         } finally
         {
             cursor.close();
         }
 
-        txn.commit();
-        myDbEnv.close();
+//        txn.commit();
+//        myDbEnv.close();
     }
 
     public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
-        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -319,7 +343,6 @@ public class DbClient {
         } finally {
             cursor.close();
         }
-        myDbEnv.close();
         return tuples;
     }
 
@@ -365,11 +388,12 @@ public class DbClient {
     public Relation getRelation(String rel_name){
 
         /* return if present in cache. */
-        if(relationsCache.get(rel_name) != null)
-            return relationsCache.get(rel_name);
+        //TODO: Fix relation cache in case of transactional create database
+        //if(relationsCache.get(rel_name) != null)
+//            return relationsCache.get(rel_name);
 
 
-        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -377,7 +401,7 @@ public class DbClient {
         Relation foundRelation = null;
         try { // always want to make sure the cursor gets closed
             while (cursor.getNext(foundKey, foundData,
-                    LockMode.DEFAULT) == OperationStatus.SUCCESS) { 
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 Relation relation =
                         (Relation)relationBinding.entryToObject(foundData);
                 if(relation.getName().equals(rel_name)){
@@ -393,7 +417,7 @@ public class DbClient {
         } finally {
             cursor.close();
         }
-        myDbEnv.close();
+//        myDbEnv.close();
 
         //update the cache.
         if(null != foundRelation) relationsCache.put(rel_name, foundRelation);

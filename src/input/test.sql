@@ -1,22 +1,12 @@
-create table dep (name str, age int, pid int);
+create table emp ( empno int,
+              age   int,
+              dept_name str,
+              name str
+            );
 .
-create table pop (name str, age int, pid int);
+
+insert into emp values (1,19,"cse", "ankit");
 .
-create table dep (name str, age int, pid int);
-.
-insert into pop values ("a", 12, 23);
-.
-insert into pop values ("b", 23, 12);
-.
-insert into pop values ("c", 12, 23);
-.
-insert into pop values ("d", 23, 12);
-.
-insert into dep values ("a", 12, 23);
-.
-insert into dep values ("c", 12, 23);
-.
-insert into dep values ("b", 23, 12);
-.
-insert into dep values ("d", 23, 12);
+
+select * from emp;
 .

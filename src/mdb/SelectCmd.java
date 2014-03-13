@@ -79,7 +79,7 @@ public class SelectCmd extends Select {
             }
 
         } catch (MyDatabaseException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return;
         }
 

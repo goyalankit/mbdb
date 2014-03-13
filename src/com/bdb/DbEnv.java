@@ -13,6 +13,8 @@ public class DbEnv {
     private Database mySeqDatabase;
     private Sequence seq;
 
+    private Transaction userTxn = null;
+
     public DbEnv() {}
 
     public void setup(File envHome, boolean readOnly, String relation)
@@ -28,6 +30,10 @@ public class DbEnv {
         myEnvConfig.setReadOnly(readOnly);
         myDbConfig.setReadOnly(readOnly);
         mySecConfig.setReadOnly(readOnly);
+
+//        myEnvConfig.setTransactional(true);
+//        myDbConfig.setTransactional(true);
+//        mySecConfig.setReadOnly(true);
 
         // If the environment is opened for write, then we want to be
         // able to create the environment and databases if
@@ -45,24 +51,46 @@ public class DbEnv {
         // Open the environment
         myEnv = new Environment(envHome, myEnvConfig);
 
+
+        TransactionConfig txnConfig = new TransactionConfig();
+        txnConfig.setReadUncommitted(true);
+
+
+        if(userTxn == null){
+            userTxn = myEnv.beginTransaction(null, txnConfig);
+            userTxn.setName("THE ONLY TRANSACTION");
+        }
+
         // Now open, or create and open, our databases
         // Open the vendors and inventory databases
-        myDatabase = myEnv.openDatabase(null,
+        myDatabase = myEnv.openDatabase(userTxn,
                 relation,
                 myDbConfig);
 
-        mySeqDatabase = myEnv.openDatabase(null,
+        mySeqDatabase = myEnv.openDatabase(userTxn,
                                         "sequence.db",
                                         myDbConfig);
 
-        seq = mySeqDatabase.openSequence(null,
+        seq = mySeqDatabase.openSequence(userTxn,
                                          new DatabaseEntry((relation+"_ID").getBytes()),
                                             mySeqconfig);
     }
 
+    public Transaction getUserTxn(){
+        return userTxn;
+    }
+
+    public void endTransaction(){
+        userTxn = null;
+        //userTxn.setTxnNull();
+    }
+
+    private static void begin(){
+        System.out.println("");
+    }
 
     public Long getRelationKey(Transaction txn){
-        return  seq.get(txn, 1);
+        return  seq.get(userTxn, 1);
     }
 
     public Environment getEnv() { return myEnv; }
