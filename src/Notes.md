@@ -14,6 +14,9 @@
 2. Read on index creation and stuff.
 
 
+#### Issues:
+Not able to launch multiple instances. Env is opened for a transaction and it needs to be closed before opening another.
+
 ### Test cases:
 1. Two relations mentioned but the condition is not given for the join.
 `select * from zipcodes, customers  where zipcodes.zip=54444;`

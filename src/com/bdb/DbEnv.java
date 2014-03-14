@@ -13,7 +13,7 @@ public class DbEnv {
     private Database mySeqDatabase;
     private Sequence seq;
 
-    private Transaction userTxn = null;
+    private static Transaction userTxn = null;
 
     public DbEnv() {}
 
@@ -76,11 +76,11 @@ public class DbEnv {
                                             mySeqconfig);
     }
 
-    public Transaction getUserTxn(){
+    public static Transaction getUserTxn(){
         return userTxn;
     }
 
-    public void endTransaction(){
+    public static void endTransaction(){
         userTxn = null;
         //userTxn.setTxnNull();
     }

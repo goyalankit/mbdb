@@ -24,7 +24,7 @@ public class DbClient {
     private static DatabaseEntry theKey = new DatabaseEntry();
     private static DatabaseEntry theData = new DatabaseEntry();
 
-    private static DbEnv myDbEnv = new DbEnv();
+    private DbEnv myDbEnv = new DbEnv();
     public static String dbEnvFilename = "mydbenv";
     private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
@@ -45,22 +45,16 @@ public class DbClient {
 
     //begin new transaction
 
-
-    private static void closeDb(){
-        myDbEnv.endTransaction();
-        myDbEnv.close();
-    }
-
     public static void commit(){
-        myDbEnv.getUserTxn().abort();
+        DbEnv.getUserTxn().abort();
         System.out.println("** Transaction Committed **");
-        closeDb();
+        DbEnv.endTransaction();
     }
 
     public static void abort(){
-        myDbEnv.getUserTxn().abort();
+        DbEnv.getUserTxn().abort();
         System.out.println("** Transaction Aborted **");
-        closeDb();
+        DbEnv.endTransaction();
     }
 
     /**
@@ -104,7 +98,7 @@ public class DbClient {
         }
 
         //txn.commit();
-        System.out.println("**DBClient: Table "+relation.getName() + " created.**");
+        System.out.println("**DBClient: Table " + relation.getName() + " created.**");
 
         return true;
     }
