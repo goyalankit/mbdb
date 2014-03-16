@@ -53,6 +53,7 @@ public class DbClient {
 
     public static void abort(){
         DbEnv.getUserTxn().abort();
+        invalidateCahe();
         System.out.println("** Transaction Aborted **");
         DbEnv.endTransaction();
     }
@@ -383,33 +384,56 @@ public class DbClient {
 
         /* return if present in cache. */
         //TODO: Fix relation cache in case of transactional create database
-        //if(relationsCache.get(rel_name) != null)
-//            return relationsCache.get(rel_name);
-
-
-        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
+        if(relationsCache.get(rel_name) != null)
+            return relationsCache.get(rel_name);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
+
+
+
         TupleBinding relationBinding = new MyRelationBinding();
         Relation foundRelation = null;
-        try { // always want to make sure the cursor gets closed
-            while (cursor.getNext(foundKey, foundData,
-                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                Relation relation =
-                        (Relation)relationBinding.entryToObject(foundData);
-                if(relation.getName().equals(rel_name)){
-                    foundRelation = relation;
-                    break;
+
+        try {
+
+
+            String myStringKey = new String(rel_name.trim());
+            EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(String.class);
+            mykeybinding.objectToEntry(myStringKey, foundKey);
+
+
+            if(myDbEnv.getDB().get(DbEnv.getUserTxn(), foundKey, foundData, LockMode.DEFAULT)
+                    == OperationStatus.SUCCESS){
+
+                Relation relation = (Relation) relationBinding.entryToObject(foundData);
+                foundRelation = relation;
+            }
+
+/*
+
+            OLD LOGIC TO FIND KEY BY ITERATING THROUGH ALL THE RECORDS.
+
+            if(false){
+                while (cursor.getNext(foundKey, foundData,
+                        LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                    Relation relation =
+                            (Relation)relationBinding.entryToObject(foundData);
+                    if(relation.getName().equals(rel_name)){
+
+                        foundRelation = relation;
+                        break;
+                    }
                 }
             }
+*/
 
         } catch (Exception e) {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());
             e.printStackTrace();
         } finally {
-            cursor.close();
+
         }
 //        myDbEnv.close();
 

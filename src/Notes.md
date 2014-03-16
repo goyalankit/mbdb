@@ -15,7 +15,7 @@
 
 
 #### Issues:
-Not able to launch multiple instances. Env is opened for a transaction and it needs to be closed before opening another.
+
 
 ### Test cases:
 1. Two relations mentioned but the condition is not given for the join.
@@ -29,6 +29,13 @@ Not able to launch multiple instances. Env is opened for a transaction and it ne
 4. select zipcodes.zip from zipcodes;
 
 
+### New test cases
+1. Check that the cache works properly.
+2. Check abort and commit behave properly.
+
+
+#### Optimizations
+1. Relations are cached over committed transactions. Cache is invalidated when a relations aborts.
 
 
 ####Results
