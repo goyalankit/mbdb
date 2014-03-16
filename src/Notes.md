@@ -7,6 +7,8 @@
 4. implemented update commands
 5. implemented delete.
 6. implement script command.
+7. Index metadata stored in `index_metadata` column with relation name as a key
+
 
 #### TODO:
 0. Check for database open/close commands. Figure out what to do with them.

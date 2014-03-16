@@ -12,10 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
  * Created by ankit on 2/3/14.
  * This class is meant to handle interactions between Berkley DB and MDB
- *
  */
 
 public class DbClient {
@@ -29,43 +27,44 @@ public class DbClient {
     private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
     public DbClient(String dbEnvFilename, String relation) {
-        if(this.dbEnvFilename == null || this.dbEnvFilename == "mydbenv"){
+        if (this.dbEnvFilename == null || this.dbEnvFilename == "mydbenv") {
             File envDir = new File("mydbenv");
-            if(!envDir.exists()){
+            if (!envDir.exists()) {
                 System.out.println("Database doesn't exist. Creating a default one by name mydbenv.");
                 envDir.mkdir(); //make directory if it doesn't exist yet
                 DbClient.dbEnvFilename = envDir.getName();
             }
         }
-                    myDbEnvPath = new File(this.dbEnvFilename);
+        myDbEnvPath = new File(this.dbEnvFilename);
         myDbEnv.setup(myDbEnvPath, // path to the environment home
                 false, relation);      // is this environment read-only?
-
     }
 
     //begin new transaction
 
-    public static void commit(){
+    public static void commit() {
         DbEnv.getUserTxn().commit();
         System.out.println("** Transaction Committed **");
         DbEnv.endTransaction();
     }
 
-    public static void abort(){
+    public static void abort() {
         DbEnv.getUserTxn().abort();
         invalidateCahe();
         System.out.println("** Transaction Aborted **");
         DbEnv.endTransaction();
     }
 
+    public DbEnv getMyDbEnv() {
+        return myDbEnv;
+    }
+
     /**
-     *
      * createNewRelation: creates a new relation(Table) in the metadata.
      * This is used to avoid hardcoded java classes as required by BDB.
-     *
-     * */
+     */
 
-    public boolean createNewRelation(Relation relation){
+    public boolean createNewRelation(Relation relation) {
 
         TupleBinding relationBinding = new MyRelationBinding();
 
@@ -101,12 +100,10 @@ public class DbClient {
     }
 
     /**
-     *
      * insert a tuple in a table.
-     *
-     * */
+     */
 
-    public boolean insertTupleInRelation(Tuple tuple){
+    public boolean insertTupleInRelation(Tuple tuple) {
 
         TupleBinding myTupleBinding = new MyTupleBinding();
 
@@ -114,9 +111,9 @@ public class DbClient {
         EntryBinding keybinding = TupleBinding.getPrimitiveBinding(Long.class);
         Long myKey = myDbEnv.getRelationKey(myDbEnv.getUserTxn());
 
-        try{
+        try {
             keybinding.objectToEntry(myKey, theKey);
-        }   catch (Exception e){
+        } catch (Exception e) {
 
         }
 
@@ -140,13 +137,11 @@ public class DbClient {
     }
 
     /**
-    *
-    *  select * from relation.
-    *  Avoid calling this method directly. This method gets called from Relation class.
-    *
-    * */
+     * select * from relation.
+     * Avoid calling this method directly. This method gets called from Relation class.
+     */
 
-    public List<Tuple> selectStarFromRelation(){
+    public List<Tuple> selectStarFromRelation() {
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -171,7 +166,7 @@ public class DbClient {
         return tuples;
     }
 
-    public List<Relation> showRelationsInADatabase(){
+    public List<Relation> showRelationsInADatabase() {
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -200,7 +195,7 @@ public class DbClient {
     }
 
 
-    public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
+    public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates) {
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -214,13 +209,13 @@ public class DbClient {
 
                 boolean includeTuple = true;
 
-                    for(Predicate p : predicates){
-                        if(!p.applyLocal(t))
-                            includeTuple = false;
-                    }
+                for (Predicate p : predicates) {
+                    if (!p.applyLocal(t))
+                        includeTuple = false;
+                }
 
-                if(includeTuple){
-                    for(Column column : updates.keySet())
+                if (includeTuple) {
+                    for (Column column : updates.keySet())
                         t.getDbValues()[column.getIndex()] = updates.get(column);
 
                     myTupleBinding.objectToEntry(t, theData);
@@ -229,14 +224,12 @@ public class DbClient {
 
             }
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());
             abort();
             e.printStackTrace();
-        } finally
-        {
+        } finally {
             cursor.close();
         }
     }
@@ -256,29 +249,27 @@ public class DbClient {
 
                 boolean includeTuple = true;
 
-                for(Predicate p : predicates){
-                    if(!p.applyLocal(t))
+                for (Predicate p : predicates) {
+                    if (!p.applyLocal(t))
                         includeTuple = false;
                 }
 
-                if(includeTuple){
+                if (includeTuple) {
                     myDbEnv.getDB().delete(myDbEnv.getUserTxn(), foundKey);
                 }
             }
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println("Error on inventory cursor:");
             System.err.println(e.toString());
             abort();
             e.printStackTrace();
-        } finally
-        {
+        } finally {
             cursor.close();
         }
     }
 
-    public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
+    public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates) {
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -288,9 +279,8 @@ public class DbClient {
 
         boolean selectAll = false;
 
-        if(null == predicates || predicates.size() == 0)
+        if (null == predicates || predicates.size() == 0)
             selectAll = true;
-
 
 
         try { // always want to make sure the cursor gets closed
@@ -299,14 +289,14 @@ public class DbClient {
                 Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
                 boolean includeTuple = true;
 
-                if(!selectAll){
-                    for(Predicate p : predicates){
-                        if(!p.applyLocal(t))
+                if (!selectAll) {
+                    for (Predicate p : predicates) {
+                        if (!p.applyLocal(t))
                             includeTuple = false;
                     }
                 }
 
-                if(includeTuple) tuples.add(t);
+                if (includeTuple) tuples.add(t);
 
             }
         } catch (Exception e) {
@@ -320,14 +310,12 @@ public class DbClient {
     }
 
     /**
-     *
      * get the number of records in a given relation.
      * Note that this method doesn't close the environment.
      * Incorrect use may lead to weird locking errors.
-     *
-     * */
+     */
 
-    private int numRecordsInARelation(){
+    private int numRecordsInARelation() {
         Cursor cursor = myDbEnv.getDB().openCursor(null, null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -352,22 +340,18 @@ public class DbClient {
     }
 
     /**
-     *
-     * @param rel_name
-     * getRelation : get a relation object from BDB based on the name.
-     *
-     * */
+     * @param rel_name getRelation : get a relation object from BDB based on the name.
+     */
 
-    public Relation getRelation(String rel_name){
+    public Relation getRelation(String rel_name) {
 
         /* return if present in cache. */
-        //TODO: Fix relation cache in case of transactional create database
-        if(relationsCache.get(rel_name) != null)
+        //TODO: Fix relation cache in case of transactional create database: FIXED....NEEDS TESTING
+        if (relationsCache.get(rel_name) != null)
             return relationsCache.get(rel_name);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
-
 
 
         TupleBinding relationBinding = new MyRelationBinding();
@@ -381,8 +365,8 @@ public class DbClient {
             mykeybinding.objectToEntry(myStringKey, foundKey);
 
 
-            if(myDbEnv.getDB().get(DbEnv.getUserTxn(), foundKey, foundData, LockMode.DEFAULT)
-                    == OperationStatus.SUCCESS){
+            if (myDbEnv.getDB().get(DbEnv.getUserTxn(), foundKey, foundData, LockMode.DEFAULT)
+                    == OperationStatus.SUCCESS) {
 
                 Relation relation = (Relation) relationBinding.entryToObject(foundData);
                 foundRelation = relation;
@@ -415,7 +399,7 @@ public class DbClient {
         }
 
         //update the cache.
-        if(null != foundRelation) relationsCache.put(rel_name, foundRelation);
+        if (null != foundRelation) relationsCache.put(rel_name, foundRelation);
 
         return foundRelation;
     }
@@ -424,9 +408,181 @@ public class DbClient {
      * invalidate the relations cache. Done when database is changed.
      * Currently no delete table is present.
      */
-    public static void invalidateCahe(){
+    public static void invalidateCahe() {
         relationsCache = new HashMap<String, Relation>();
     }
+
+
+    /*-----------------------------------------------------------------------------------------------------------------*/
+    /**
+     *
+     *
+     * Index Related Methods
+     *
+     *
+     * */
+
+
+    /**
+     * Insert index metadata.
+     */
+    public boolean insertIndexMetadata(IndexMetadata indexMetadata) {
+        TupleBinding indexMetadataBinding = new IndexMetadataBinding();
+
+        /* converting key to database entry object */
+        EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(String.class);
+
+        String myStringKey = new String(indexMetadata.getRelationName().trim());
+
+        try {
+            mykeybinding.objectToEntry(myStringKey, theKey);
+            indexMetadataBinding.objectToEntry(indexMetadata, theData);
+            myDbEnv.getDB().put(myDbEnv.getUserTxn(), theKey, theData);
+
+        } catch (DatabaseException dbe) {
+            System.out.println("Error putting entry ");
+            abort();
+            throw dbe;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Key could not be serialized.");
+        }
+
+        System.out.println("**DBClient: Index Metadata for " + indexMetadata.getRelationName() + " created.**");
+
+        return true;
+    }
+
+
+    /**
+     *
+     * get Metadata for index.
+     *
+     */
+    public IndexMetadata getIndexMetadata(String relation) {
+        TupleBinding indexMetadataBinding = new IndexMetadataBinding();
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        IndexMetadata indexMetadata = null;
+
+        try {
+
+            String myStringKey = new String(relation.trim());
+            EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(String.class);
+            mykeybinding.objectToEntry(myStringKey, foundKey);
+
+            if (myDbEnv.getDB().get(DbEnv.getUserTxn(), foundKey, foundData, LockMode.DEFAULT)
+                    == OperationStatus.SUCCESS) {
+                indexMetadata = (IndexMetadata) indexMetadataBinding.entryToObject(foundData);
+            }
+
+        } catch (DatabaseException dbe) {
+            System.out.println("Error putting entry ");
+            dbe.printStackTrace();
+            abort();
+            throw dbe;
+        } catch (Exception e) {
+            System.out.println("Key could not be serialized.");
+            e.printStackTrace();
+        }
+
+        return indexMetadata;
+    }
+
+    /**
+     *
+     * create indexes for the given table and column
+     *
+     * */
+
+    public void createIndex(DbEnv relDbEnv, Relation relation, String colName){
+        Cursor relCursor = relDbEnv.getDB().openCursor(DbEnv.getUserTxn(), null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        String relName = relation.getName();
+        int colIndex = relation.getColumn(colName).index;
+
+        Map<DbValue, IndexTuple> stringListMap = new HashMap<DbValue, IndexTuple>();
+        TupleBinding myTupleBinding = new MyTupleBinding();
+
+
+        try {
+
+            /**
+             *
+             * First get the hash of all records.
+             * There are two options: Insert asap or get the hash.
+             *
+             * */
+
+            IndexTuple indexTuple;
+            List<IndexTuple> temp;
+
+            while (relCursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+
+                // get the tuple
+                Tuple tuple = (Tuple) myTupleBinding.entryToObject(foundData);
+
+                // check get the new indexed key value
+                DbValue currentValue = tuple.getDbValues()[colIndex];
+
+                if(stringListMap.containsKey(currentValue))
+                {
+                    stringListMap.get(currentValue).addForeignKey(foundKey);
+                }
+                else
+                {
+                    indexTuple = new IndexTuple(relName);
+                    indexTuple.addForeignKey(foundKey);
+                    stringListMap.put(currentValue, indexTuple);
+                }
+            }
+
+            /**
+             *
+             * Hash[column value] = [key1, key2, key3]
+             * Add this to index tuple.
+             *
+             * */
+
+            EntryBinding myStrKeyBinding = TupleBinding.getPrimitiveBinding(String.class);
+            EntryBinding myIntKeyBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+
+            TupleBinding indexTupleBinding  = new IndexTupleBinding();
+
+            DatabaseEntry newKey = new DatabaseEntry();
+            DatabaseEntry newValue = new DatabaseEntry();
+
+            // create a new table with all the indexes.
+            for(DbValue str : stringListMap.keySet()){
+                if(str instanceof DbString){
+                    myStrKeyBinding.objectToEntry(((DbString)str).value, newKey);
+                }
+                else{
+                    myIntKeyBinding.objectToEntry(((DbInt)str).value, newKey);
+                }
+
+                indexTupleBinding.objectToEntry(stringListMap.get(str), newValue);
+
+                myDbEnv.getDB().put(DbEnv.getUserTxn(), newKey, newValue);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error on inventory cursor:");
+            System.err.println(e.toString());
+            e.printStackTrace();
+        } finally {
+            System.out.println("Index Created");
+            relCursor.close();
+        }
+    }
+
+
 
 
 }

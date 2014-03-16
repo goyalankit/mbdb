@@ -10,7 +10,9 @@ import java.io.File;
 public class DbEnv {
     private Environment myEnv;
     private Database myDatabase;
+    private Database indexDatabase;
     private Database mySeqDatabase;
+
     private Sequence seq;
 
     private static Transaction userTxn = null;
@@ -22,14 +24,13 @@ public class DbEnv {
 
         EnvironmentConfig myEnvConfig = new EnvironmentConfig();
         DatabaseConfig myDbConfig = new DatabaseConfig();
-        SecondaryConfig mySecConfig = new SecondaryConfig();
+
         SequenceConfig mySeqconfig = new SequenceConfig();
 
         // If the environment is read-only, then
         // make the databases read-only too.
         myEnvConfig.setReadOnly(readOnly);
         myDbConfig.setReadOnly(readOnly);
-        mySecConfig.setReadOnly(readOnly);
 
 //        myEnvConfig.setTransactional(true);
 //        myDbConfig.setTransactional(true);
@@ -40,13 +41,12 @@ public class DbEnv {
         // they do not exist.
         myEnvConfig.setAllowCreate(!readOnly);
         myDbConfig.setAllowCreate(!readOnly);
-        mySecConfig.setAllowCreate(!readOnly);
         mySeqconfig.setAllowCreate(!readOnly);
 
         // Allow transactions if we are writing to the database
         myEnvConfig.setTransactional(!readOnly);
         myDbConfig.setTransactional(!readOnly);
-        mySecConfig.setTransactional(!readOnly);
+
 
         // Open the environment
         myEnv = new Environment(envHome, myEnvConfig);
@@ -74,6 +74,20 @@ public class DbEnv {
         seq = mySeqDatabase.openSequence(userTxn,
                                          new DatabaseEntry((relation+"_ID").getBytes()),
                                             mySeqconfig);
+
+    }
+
+    public void setIndexDB(String relation, String attribute){
+        // Index database
+        SecondaryConfig mySecConfig = new SecondaryConfig();
+        mySecConfig.setReadOnly(false);
+        mySecConfig.setAllowCreate(true);
+        mySecConfig.setTransactional(true);
+        indexDatabase = myEnv.openDatabase(userTxn, "index_"+relation+"_"+attribute, mySecConfig);
+    }
+
+    public Database getIndexDB(){
+        return indexDatabase;
     }
 
     public static Transaction getUserTxn(){
@@ -106,6 +120,7 @@ public class DbEnv {
                 myDatabase.close();
                 seq.close();
                 mySeqDatabase.close();
+                indexDatabase.close();
                 /* Finally, close the environment.*/
                 myEnv.close();
             } catch(DatabaseException dbe) {
