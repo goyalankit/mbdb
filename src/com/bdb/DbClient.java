@@ -46,7 +46,7 @@ public class DbClient {
     //begin new transaction
 
     public static void commit(){
-        DbEnv.getUserTxn().abort();
+        DbEnv.getUserTxn().commit();
         System.out.println("** Transaction Committed **");
         DbEnv.endTransaction();
     }

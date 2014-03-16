@@ -13,6 +13,7 @@ public class CloseCmd extends Close {
     public void execute () {
         
         super.execute();
+        DbClient.abort();
         DbClient.dbEnvFilename = "mydbenv";
         DbClient.invalidateCahe();
     }

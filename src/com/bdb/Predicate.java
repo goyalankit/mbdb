@@ -134,7 +134,9 @@ public class Predicate {
 
         JoinedTuple joinedTuple = null;
 
-        if(relationName1.equals(relationName2)){
+        boolean both_joined = (t1 instanceof JoinedTuple) && (t2 instanceof JoinedTuple);
+
+        if(relationName1.equals(relationName2) || both_joined){
             if(t1 instanceof JoinedTuple)
                 dbValue1 = ((JoinedTuple) t1).getColumnValue(lhsRelation.getName() + "." + lhsColumn.getName());
             else
@@ -152,7 +154,7 @@ public class Predicate {
 
 
         if(dbValue1.equals(dbValue2)){
-            joinedTuple = new JoinedTuple(t1, t2, lhsColumn, rhsColumn);
+                joinedTuple = new JoinedTuple(t1, t2, lhsColumn, rhsColumn);
         }
 
         return joinedTuple;

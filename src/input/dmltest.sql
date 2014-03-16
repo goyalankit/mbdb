@@ -53,5 +53,3 @@ delete emp where name = "Anderson, John" ;
 
 close;
 .
-exit;
-.

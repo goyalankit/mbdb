@@ -92,7 +92,12 @@ public class SelectQueryProcessor {
             List<Tuple> filteredTuples = new ArrayList<Tuple>();
 
 
-            if(r1.equals(r2)){
+            //If both the relations have already been joined. We need to filter out the results from the
+            //joined relation. It's similar to self-join.
+            boolean both_joined = (relationJoined.containsKey(r1) && relationJoined.containsKey(r2));
+
+            //self join.
+            if(r1.equals(r2) || both_joined ){
                 for (Tuple t1 : tuples1) {
                     Tuple ntuple = p.applyJoin(t1, t1);
                     if(null!=ntuple)
