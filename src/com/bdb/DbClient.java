@@ -69,10 +69,6 @@ public class DbClient {
 
         TupleBinding relationBinding = new MyRelationBinding();
 
-        /* Initializing transaction. Multiple commands can be executed in same transaction. */
-//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-        //Transaction txn = userTxn;
-
         /* converting key to database entry object */
         EntryBinding mykeybinding = TupleBinding.getPrimitiveBinding(String.class);
 
@@ -114,9 +110,6 @@ public class DbClient {
 
         TupleBinding myTupleBinding = new MyTupleBinding();
 
-        /* Initializing transaction. Multiple commands can be executed in same transaction. */
-//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-//        Transaction user = userTxn;
         /* converting key to database entry object */
         EntryBinding keybinding = TupleBinding.getPrimitiveBinding(Long.class);
         Long myKey = myDbEnv.getRelationKey(myDbEnv.getUserTxn());
@@ -141,10 +134,8 @@ public class DbClient {
             abort();
             throw dbe;
         }
-//        txn.commit();
-        System.out.println("**DBClient: Tuple inserted. Not commited yet**");
-//        myDbEnv.close();
 
+        System.out.println("**DBClient: Tuple inserted. Not commited yet**");
         return true;
     }
 
@@ -177,7 +168,6 @@ public class DbClient {
             cursor.close();
         }
 
-//        myDbEnv.close();
         return tuples;
     }
 
@@ -206,15 +196,11 @@ public class DbClient {
             cursor.close();
         }
 
-
-//        myDbEnv.close();
         return relations;
     }
 
 
     public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates){
-//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-//        Transaction txn = userTxn;
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -253,15 +239,10 @@ public class DbClient {
         {
             cursor.close();
         }
-
-//        txn.commit();
-//        myDbEnv.close();
     }
 
     public void deleteTuplesWithPredicate(List<Predicate> predicates) {
 
-//        Transaction txn = myDbEnv.getEnv().beginTransaction(null, null);
-//        Transaction txn = userTxn;
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
@@ -295,9 +276,6 @@ public class DbClient {
         {
             cursor.close();
         }
-
-//        txn.commit();
-//        myDbEnv.close();
     }
 
     public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates){
@@ -435,7 +413,6 @@ public class DbClient {
         } finally {
 
         }
-//        myDbEnv.close();
 
         //update the cache.
         if(null != foundRelation) relationsCache.put(rel_name, foundRelation);
