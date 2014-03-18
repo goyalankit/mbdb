@@ -27,9 +27,17 @@ public class IndexTuple {
         this.recordKeys = recordKeys;
     }
 
-    public void addForeignKey(DatabaseEntry foreignKey){
+    public void addPrimaryKeyFromMainTable(DatabaseEntry foreignKey){
         recordKeys.add(foreignKey);
         this.numRecords = recordKeys.size();
+    }
+
+    public boolean primaryKeyAlreadyPresent(DatabaseEntry primaryKey){
+        for(DatabaseEntry de : recordKeys)
+            if (de.equals(primaryKey))
+                return true;
+
+        return false;
     }
 
     public String getRelationName() {

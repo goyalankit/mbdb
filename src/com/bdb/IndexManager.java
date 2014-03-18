@@ -1,5 +1,7 @@
 package com.bdb;
 
+import com.sleepycat.je.DatabaseEntry;
+
 import java.util.List;
 
 /**
@@ -31,6 +33,20 @@ public class IndexManager {
 
         // create index for all existing records
         createIndexForAllExistingRecords(relation, columnName);
+
+    }
+
+    public static void createIndexTupleForNewTuple(String relName, DatabaseEntry pKey, Tuple tuple){
+
+
+        IndexMetadata metadata = IndexMetadata.getMetadata(relName);
+
+        if(null == metadata || metadata.numColsIndexed <= 0) return;
+
+        for (String columnName : metadata.indexedColumnNames){
+            DbClient dbClient = new DbClient("mydbenv","index_"+relName+"_"+columnName);
+            dbClient.addIndexForNewTuple(dbClient.getMyDbEnv(), pKey, columnName, tuple);
+        }
 
     }
 

@@ -116,11 +116,12 @@ public class DbClient {
         } catch (Exception e) {
 
         }
-
         myTupleBinding.objectToEntry(tuple, theData);
+        IndexManager.createIndexTupleForNewTuple(myDbEnv.getDB().getDatabaseName(), theKey, tuple);
 
         try {
             myDbEnv.getDB().put(myDbEnv.getUserTxn(), theKey, theData);
+
         } catch (DatabaseException dbe) {
             try {
                 System.out.println("Error putting entry ");
@@ -564,12 +565,12 @@ public class DbClient {
 
                 if(stringListMap.containsKey(currentValue))
                 {
-                    stringListMap.get(currentValue).addForeignKey(foundKey);
+                    stringListMap.get(currentValue).addPrimaryKeyFromMainTable(foundKey);
                 }
                 else
                 {
                     indexTuple = new IndexTuple(relName);
-                    indexTuple.addForeignKey(foundKey);
+                    indexTuple.addPrimaryKeyFromMainTable(foundKey);
                     stringListMap.put(currentValue, indexTuple);
                 }
             }
@@ -621,7 +622,6 @@ public class DbClient {
 
     public List<Tuple> getTuplesUsingIndex(Predicate predicate){
 
-
         List<Tuple> tuples = new ArrayList<Tuple>();
         DbClient dbClient = new DbClient("mydbenv",
                 "index_"+predicate.getLhsRelation().getName()+"_"+predicate.getLhsColumn().getName());
@@ -632,6 +632,7 @@ public class DbClient {
 
         DbValue searchValue = predicate.getRhsValue();
 
+        // Get the key for index table in database entry type
         EntryBinding myBinding;
         if(searchValue instanceof DbString){
             myBinding = TupleBinding.getPrimitiveBinding(String.class);
@@ -647,12 +648,15 @@ public class DbClient {
 
         TupleBinding myTupleBinding = new MyTupleBinding();
 
+
+        // Find the key in secondary database and iterate over keys.
         if (dbClient.getMyDbEnv().getDB().get(DbEnv.getUserTxn(), searchKey, foundData, LockMode.DEFAULT)
                 == OperationStatus.SUCCESS) {
 
             IndexTuple indexTuple = (IndexTuple) indexTupleBinding.entryToObject(foundData);
 
             DatabaseEntry tupleInMain = new DatabaseEntry();
+            // iterate over keys and find them in main database.
             for(DatabaseEntry de : indexTuple.recordKeys){
                 if (myDbEnv.getDB().get(DbEnv.getUserTxn(), de, tupleInMain, LockMode.DEFAULT)
                         == OperationStatus.SUCCESS) {
@@ -662,6 +666,68 @@ public class DbClient {
         }
 
         return tuples;
+    }
+
+
+    /**
+     *
+     * this method adds index entry for brand new tuple.
+     * If index already present on the tuple, update the key
+     * Otherwise insert a new IndexTuple.
+     *
+     * */
+    public void addIndexForNewTuple(DbEnv dbEnv, DatabaseEntry primaryKey, String colName, Tuple tuple){
+        Relation relation = Relation.getRelation(tuple.getRelationName());
+
+        // get the key for index database
+        DbValue dbValue = tuple.getDbValues()[relation.getColumn(colName).index];
+
+        EntryBinding myBinding;
+        DatabaseEntry indexKey = new DatabaseEntry();
+
+        try
+        {
+            if(dbValue instanceof DbString){
+                myBinding = TupleBinding.getPrimitiveBinding(String.class);
+                myBinding.objectToEntry(((DbString)dbValue).value, indexKey);
+            }
+            else{
+                myBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+                myBinding.objectToEntry(((DbInt)dbValue).value, indexKey);
+            }
+
+            DatabaseEntry indexTupleEntry = new DatabaseEntry();
+            TupleBinding indexTupleBinding  = new IndexTupleBinding();
+            IndexTuple indexTuple;
+            if (dbEnv.getDB().get(DbEnv.getUserTxn(), indexKey, indexTupleEntry, LockMode.DEFAULT)
+                    == OperationStatus.SUCCESS)
+
+            { // value is already indexed. update the primary key.
+                indexTuple = (IndexTuple) indexTupleBinding.entryToObject(indexTupleEntry);
+                if(!indexTuple.primaryKeyAlreadyPresent(primaryKey))
+                    indexTuple.addPrimaryKeyFromMainTable(primaryKey);
+            }
+            else
+            {  // create a new indextuple to add to the table.
+                indexTuple = new IndexTuple(relation.getName());
+                indexTuple.addPrimaryKeyFromMainTable(primaryKey);
+            }
+
+            // create database entry for new record.
+            indexTupleBinding.objectToEntry(indexTuple, indexTupleEntry);
+
+            //update the database
+            dbEnv.getDB().put(myDbEnv.getUserTxn(), indexKey, indexTupleEntry);
+            System.out.println("index entry updated.");
+        }
+        catch (DatabaseException dbe) {
+            System.out.println("Error putting entry ");
+            dbe.printStackTrace();
+            throw dbe;
+        }
+        catch (Exception e){
+            System.err.println("Error in updating index..");
+        }
     }
 
 }
