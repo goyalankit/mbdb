@@ -59,6 +59,7 @@ public class SelectQueryProcessor {
                 Return all the tuples based on predicates. otherwise all tuples
                 if no predicate is present.
             */
+
             tuples.put(rel, dbClient.getTuplesWithPredicate(localPredicates.get(rel)));
         }
 

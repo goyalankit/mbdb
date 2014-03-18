@@ -1,5 +1,7 @@
 package com.bdb;
 
+import java.util.List;
+
 /**
  * Created by ankit on 3/15/14.
  */
@@ -17,8 +19,6 @@ public class IndexManager {
         // Check if relation has index on given column.
         return metadata.hasIndexOnColumn(columnName);
     }
-
-
 
     public static void createIndex(Relation relation, String columnName){
         if(IndexManager.hasIndex(relation, columnName)){
@@ -74,6 +74,23 @@ public class IndexManager {
         //delete index table
     }
 
+    public static Predicate useIndex(List<Predicate> predicates){
+
+        // TODO: optimize whether to use index or not.
+        // For now always use index if present.
+
+        if(null == predicates || predicates.size() == 0)
+            return null;
+
+        for (Predicate p : predicates) {
+            if(IndexManager.hasIndex(p.getLhsRelation(), p.getLhsColumn().getName()))
+            {
+                System.out.println("WILL BE USING INDEX FOR "+p.getLhsColumn().getName());
+                return p;
+            }
+        }
+        return null;
+    }
 
 
 

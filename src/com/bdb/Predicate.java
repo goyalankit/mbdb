@@ -172,6 +172,10 @@ public class Predicate {
         return rhsRelation;
     }
 
+    public Column getLhsColumn() { return lhsColumn; }
+
+    public DbValue getRhsValue() { return rhsValue; }
+
     public OpType getOperator() {
         return operator;
     }

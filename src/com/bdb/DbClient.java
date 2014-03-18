@@ -269,6 +269,8 @@ public class DbClient {
         }
     }
 
+
+    // get tuples using index method below.
     public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates) {
         Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
@@ -283,29 +285,58 @@ public class DbClient {
             selectAll = true;
 
 
-        try { // always want to make sure the cursor gets closed
-            while (cursor.getNext(foundKey, foundData,
-                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
-                boolean includeTuple = true;
+        // TODO: handle predicates empty
+        Predicate indexedPredicate = IndexManager.useIndex(predicates);
 
-                if (!selectAll) {
-                    for (Predicate p : predicates) {
+        if(null == indexedPredicate)
+        { // Don't use any index.
+            try { // always want to make sure the cursor gets closed
+
+                System.out.println("Not using any index..");
+
+                while (cursor.getNext(foundKey, foundData,
+                        LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                    Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+                    boolean includeTuple = true;
+
+                    if (!selectAll) {
+                        for (Predicate p : predicates) {
+                            if (!p.applyLocal(t))
+                                includeTuple = false;
+                        }
+                    }
+
+                    if (includeTuple) tuples.add(t);
+
+                }
+            } catch (Exception e) {
+                System.err.println("Error on inventory cursor:");
+                System.err.println(e.toString());
+                e.printStackTrace();
+            } finally {
+                cursor.close();
+            }
+        }
+        else
+        { // Use index on predicate indexedPredicate
+
+            System.out.println("Using index on "+indexedPredicate.getLhsColumn().getName()+" ...");
+            List<Tuple> prunedTuples =  getTuplesUsingIndex(indexedPredicate);
+            for(Tuple t : prunedTuples){
+                boolean includeTuple = true;
+                for(Predicate p : predicates){
+                    if(!p.equals(indexedPredicate)){
                         if (!p.applyLocal(t))
                             includeTuple = false;
                     }
                 }
 
-                if (includeTuple) tuples.add(t);
-
+                if(includeTuple) tuples.add(t);
             }
-        } catch (Exception e) {
-            System.err.println("Error on inventory cursor:");
-            System.err.println(e.toString());
-            e.printStackTrace();
-        } finally {
-            cursor.close();
+
         }
+
+
         return tuples;
     }
 
@@ -582,7 +613,49 @@ public class DbClient {
         }
     }
 
+    public List<Tuple> getTuplesUsingIndex(Predicate predicate){
 
 
+        List<Tuple> tuples = new ArrayList<Tuple>();
+        DbClient dbClient = new DbClient("mydbenv",
+                "index_"+predicate.getLhsRelation().getName()+"_"+predicate.getLhsColumn().getName());
+
+
+        DatabaseEntry searchKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        DbValue searchValue = predicate.getRhsValue();
+
+        EntryBinding myBinding;
+        if(searchValue instanceof DbString){
+            myBinding = TupleBinding.getPrimitiveBinding(String.class);
+            myBinding.objectToEntry(((DbString)searchValue).value, searchKey);
+        }
+        else{
+            myBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+            myBinding.objectToEntry(((DbInt)searchValue).value, searchKey);
+        }
+
+
+        TupleBinding indexTupleBinding  = new IndexTupleBinding();
+
+        TupleBinding myTupleBinding = new MyTupleBinding();
+
+        if (dbClient.getMyDbEnv().getDB().get(DbEnv.getUserTxn(), searchKey, foundData, LockMode.DEFAULT)
+                == OperationStatus.SUCCESS) {
+
+            IndexTuple indexTuple = (IndexTuple) indexTupleBinding.entryToObject(foundData);
+
+            DatabaseEntry tupleInMain = new DatabaseEntry();
+            for(DatabaseEntry de : indexTuple.recordKeys){
+                if (myDbEnv.getDB().get(DbEnv.getUserTxn(), de, tupleInMain, LockMode.DEFAULT)
+                        == OperationStatus.SUCCESS) {
+                    tuples.add((Tuple) myTupleBinding.entryToObject(tupleInMain));
+                }
+            }
+        }
+
+        return tuples;
+    }
 
 }

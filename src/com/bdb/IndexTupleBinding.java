@@ -22,8 +22,10 @@ public class IndexTupleBinding extends TupleBinding {
 
         List<DatabaseEntry> recordKeys = new ArrayList<DatabaseEntry>();
 
+        DatabaseEntry de = new DatabaseEntry();
         for (int i = 0; i < numIndexedFields; i++) {
-            mykeybinding.objectToEntry(ti.readLong(), recordKeys.get(i));
+            mykeybinding.objectToEntry(ti.readLong(), de);
+            recordKeys.add(de);
         }
 
         return (new IndexTuple(rel_name, numIndexedFields, recordKeys));
