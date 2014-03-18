@@ -718,6 +718,7 @@ public class DbClient {
             myBinding.objectToEntry(((DbInt)dbValue).value, indexKey);
         }
 
+        return indexKey;
     }
 
 }
