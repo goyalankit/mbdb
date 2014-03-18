@@ -273,7 +273,7 @@ public class DbClient {
 
     // get tuples using index method below.
     public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates) {
-        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
+
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -285,12 +285,12 @@ public class DbClient {
         if (null == predicates || predicates.size() == 0)
             selectAll = true;
 
-
         // TODO: handle predicates empty
         Predicate indexedPredicate = IndexManager.useIndex(predicates);
 
         if(null == indexedPredicate)
         { // Don't use any index.
+            Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
             try { // always want to make sure the cursor gets closed
 
                 System.out.println("Not using any index..");
@@ -541,7 +541,6 @@ public class DbClient {
         Map<DbValue, IndexTuple> stringListMap = new HashMap<DbValue, IndexTuple>();
         TupleBinding myTupleBinding = new MyTupleBinding();
 
-
         try {
 
             /**
@@ -552,7 +551,6 @@ public class DbClient {
              * */
 
             IndexTuple indexTuple;
-            List<IndexTuple> temp;
 
             while (relCursor.getNext(foundKey, foundData,
                     LockMode.DEFAULT) == OperationStatus.SUCCESS) {
@@ -563,14 +561,17 @@ public class DbClient {
                 // check get the new indexed key value
                 DbValue currentValue = tuple.getDbValues()[colIndex];
 
+                DatabaseEntry primKey = new DatabaseEntry();
+                primKey.setData(foundKey.getData().clone());
+
                 if(stringListMap.containsKey(currentValue))
                 {
-                    stringListMap.get(currentValue).addPrimaryKeyFromMainTable(foundKey);
+                    stringListMap.get(currentValue).addPrimaryKeyFromMainTable(primKey);
                 }
                 else
                 {
                     indexTuple = new IndexTuple(relName);
-                    indexTuple.addPrimaryKeyFromMainTable(foundKey);
+                    indexTuple.addPrimaryKeyFromMainTable(primKey);
                     stringListMap.put(currentValue, indexTuple);
                 }
             }
@@ -584,11 +585,12 @@ public class DbClient {
 
             TupleBinding indexTupleBinding  = new IndexTupleBinding();
 
-            DatabaseEntry newValue = new DatabaseEntry();
+
 
             // create a new table with all the indexes.
             for(DbValue str : stringListMap.keySet()){
                 DatabaseEntry newKey = getDbEntryFromDbValueByType(str);
+                DatabaseEntry newValue = new DatabaseEntry();
                 indexTupleBinding.objectToEntry(stringListMap.get(str), newValue);
                 myDbEnv.getDB().put(DbEnv.getUserTxn(), newKey, newValue);
             }
