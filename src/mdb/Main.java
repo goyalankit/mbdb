@@ -337,7 +337,11 @@ public class Main {
                 }
             }
 
+            Long begin = System.currentTimeMillis();
+
             ((SqlLang) root).execute();
+            Long end = System.currentTimeMillis();
+            System.out.println("(time taken = "+ ((end-begin)) + "ms )");
 
             ( ( SqlLang ) root ).print();
             System.out.println();
@@ -346,8 +350,8 @@ public class Main {
             // Step 5.5: now dump the parse tree
             //           this code can be removed for production systems
             //PRINT STATEMENTS HERE
-            System.out.println( "Dump root" );
-            root.PrettyDump();
+            //System.out.println( "Dump root" );
+            //root.PrettyDump();
 
         }
         while ( true ); // end Language statement loop

@@ -613,6 +613,12 @@ public class DbClient {
         }
     }
 
+    /**
+     *
+     * Get tuples using index.
+     *
+     * */
+
     public List<Tuple> getTuplesUsingIndex(Predicate predicate){
 
 
