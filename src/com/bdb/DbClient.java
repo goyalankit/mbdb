@@ -582,25 +582,14 @@ public class DbClient {
              *
              * */
 
-            EntryBinding myStrKeyBinding = TupleBinding.getPrimitiveBinding(String.class);
-            EntryBinding myIntKeyBinding = TupleBinding.getPrimitiveBinding(Integer.class);
-
             TupleBinding indexTupleBinding  = new IndexTupleBinding();
 
-            DatabaseEntry newKey = new DatabaseEntry();
             DatabaseEntry newValue = new DatabaseEntry();
 
             // create a new table with all the indexes.
             for(DbValue str : stringListMap.keySet()){
-                if(str instanceof DbString){
-                    myStrKeyBinding.objectToEntry(((DbString)str).value, newKey);
-                }
-                else{
-                    myIntKeyBinding.objectToEntry(((DbInt)str).value, newKey);
-                }
-
+                DatabaseEntry newKey = getDbEntryFromDbValueByType(str);
                 indexTupleBinding.objectToEntry(stringListMap.get(str), newValue);
-
                 myDbEnv.getDB().put(DbEnv.getUserTxn(), newKey, newValue);
             }
 
@@ -626,23 +615,12 @@ public class DbClient {
         DbClient dbClient = new DbClient("mydbenv",
                 "index_"+predicate.getLhsRelation().getName()+"_"+predicate.getLhsColumn().getName());
 
-
-        DatabaseEntry searchKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
 
         DbValue searchValue = predicate.getRhsValue();
 
         // Get the key for index table in database entry type
-        EntryBinding myBinding;
-        if(searchValue instanceof DbString){
-            myBinding = TupleBinding.getPrimitiveBinding(String.class);
-            myBinding.objectToEntry(((DbString)searchValue).value, searchKey);
-        }
-        else{
-            myBinding = TupleBinding.getPrimitiveBinding(Integer.class);
-            myBinding.objectToEntry(((DbInt)searchValue).value, searchKey);
-        }
-
+        DatabaseEntry searchKey = getDbEntryFromDbValueByType(searchValue);
 
         TupleBinding indexTupleBinding  = new IndexTupleBinding();
 
@@ -682,19 +660,9 @@ public class DbClient {
         // get the key for index database
         DbValue dbValue = tuple.getDbValues()[relation.getColumn(colName).index];
 
-        EntryBinding myBinding;
-        DatabaseEntry indexKey = new DatabaseEntry();
-
         try
         {
-            if(dbValue instanceof DbString){
-                myBinding = TupleBinding.getPrimitiveBinding(String.class);
-                myBinding.objectToEntry(((DbString)dbValue).value, indexKey);
-            }
-            else{
-                myBinding = TupleBinding.getPrimitiveBinding(Integer.class);
-                myBinding.objectToEntry(((DbInt)dbValue).value, indexKey);
-            }
+            DatabaseEntry indexKey = getDbEntryFromDbValueByType(dbValue);
 
             DatabaseEntry indexTupleEntry = new DatabaseEntry();
             TupleBinding indexTupleBinding  = new IndexTupleBinding();
@@ -728,6 +696,28 @@ public class DbClient {
         catch (Exception e){
             System.err.println("Error in updating index..");
         }
+    }
+
+
+    /**
+     *
+     *
+     * Get db entry from db value.
+     *
+     * */
+    private DatabaseEntry getDbEntryFromDbValueByType(DbValue dbValue){
+        EntryBinding myBinding;
+        DatabaseEntry indexKey = new DatabaseEntry();
+
+        if(dbValue instanceof DbString){
+            myBinding = TupleBinding.getPrimitiveBinding(String.class);
+            myBinding.objectToEntry(((DbString)dbValue).value, indexKey);
+        }
+        else{
+            myBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+            myBinding.objectToEntry(((DbInt)dbValue).value, indexKey);
+        }
+
     }
 
 }
