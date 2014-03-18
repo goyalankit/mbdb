@@ -1,8 +1,4 @@
-package mdb;
-
-import com.bdb.DbClient;
-import com.bdb.Predicate;
-import com.bdb.Relation;
+package com.bdb;
 
 import java.util.List;
 
