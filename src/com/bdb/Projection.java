@@ -65,8 +65,10 @@ public class Projection {
 
         List<Tuple> projectedTuples = new ArrayList<Tuple>();
 
-        if(null == finalTuples || finalTuples.size() == 0)
+        if(null == finalTuples || finalTuples.size() == 0) {
+            System.out.print("0 row(s) selected ");
             return projectedTuples;
+        }
 
 
         DbValue[] dbValuesList;
@@ -104,9 +106,9 @@ public class Projection {
         for (int i : showIndices){
             DbValue dbValue = finalTuples.get(0).getDbValues()[i];
             if(dbValue instanceof DbInt)
-                System.out.print(((DbInt)dbValue).columnName + "\t");
+                System.out.print(((DbInt)dbValue).columnName + ",");
             else
-                System.out.print(((DbString)dbValue).columnName + "\t");
+                System.out.print(((DbString)dbValue).columnName + ",");
         }
         System.out.println("\n"); //add a new line.
 
@@ -114,12 +116,15 @@ public class Projection {
             for (int i : showIndices){
                 DbValue dbValue = t1.getDbValues()[i];
                 if(dbValue instanceof DbInt)
-                    System.out.print(((DbInt)dbValue).value + "\t");
+                    System.out.print(((DbInt)dbValue).value + ",");
                 else
-                    System.out.print(((DbString)dbValue).value + "\t");
+                    System.out.print(((DbString)dbValue).value + ",");
             }
             System.out.print("\n");
         }
+
+        System.out.println();
+        System.out.print(finalTuples.size()+" row(s) selected.");
         return projectedTuples;
     }
 }

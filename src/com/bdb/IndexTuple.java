@@ -32,6 +32,11 @@ public class IndexTuple {
         this.numRecords = recordKeys.size();
     }
 
+    public void removePrimaryKeyFromMainTable(DatabaseEntry foreignKey){
+        recordKeys.remove(foreignKey);
+        this.numRecords = recordKeys.size();
+    }
+
     public boolean primaryKeyAlreadyPresent(DatabaseEntry primaryKey){
         for(DatabaseEntry de : recordKeys)
             if (de.equals(primaryKey))

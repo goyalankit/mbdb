@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by ankit on 2/3/14.
@@ -26,6 +28,9 @@ public class DbClient {
     public static String dbEnvFilename = "mydbenv";
     private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
+
+    private final static Logger LOGGER = Logger.getLogger(DbClient.class.getName());
+
     public DbClient(String dbEnvFilename, String relation) {
         if (this.dbEnvFilename == null || this.dbEnvFilename == "mydbenv") {
             File envDir = new File("mydbenv");
@@ -38,6 +43,9 @@ public class DbClient {
         myDbEnvPath = new File(this.dbEnvFilename);
         myDbEnv.setup(myDbEnvPath, // path to the environment home
                 false, relation);      // is this environment read-only?
+
+        LOGGER.setLevel(Level.OFF);
+
     }
 
     //begin new transaction
@@ -132,8 +140,7 @@ public class DbClient {
             abort();
             throw dbe;
         }
-
-        System.out.println("**DBClient: Tuple inserted. Not commited yet**");
+        LOGGER.info("**DBClient: Tuple inserted. Not commited yet**");
         return true;
     }
 
@@ -216,11 +223,18 @@ public class DbClient {
                 }
 
                 if (includeTuple) {
+
+                    // This is done to prevent cloning of objects.
+                    // delete the old tuple.
+                    IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), foundKey, t, QueryType.DELETE_INDEX);
                     for (Column column : updates.keySet())
                         t.getDbValues()[column.getIndex()] = updates.get(column);
 
                     myTupleBinding.objectToEntry(t, theData);
                     myDbEnv.getDB().put(myDbEnv.getUserTxn(), foundKey, theData);
+
+                    // add the new tuple.
+                    IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), foundKey, t, QueryType.ADD_INDEX);
                 }
 
             }
@@ -257,6 +271,7 @@ public class DbClient {
 
                 if (includeTuple) {
                     myDbEnv.getDB().delete(myDbEnv.getUserTxn(), foundKey);
+                    IndexManager.deleteIndexTupleForOldTuple(t.getRelationName(), foundKey, t);
                 }
             }
 
@@ -293,7 +308,7 @@ public class DbClient {
             Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
             try { // always want to make sure the cursor gets closed
 
-                System.out.println("Not using any index..");
+                LOGGER.info("Not using any index..");
 
                 while (cursor.getNext(foundKey, foundData,
                         LockMode.DEFAULT) == OperationStatus.SUCCESS) {
@@ -321,7 +336,7 @@ public class DbClient {
         else
         { // Use index on predicate indexedPredicate
 
-            System.out.println("Using index on "+indexedPredicate.getLhsColumn().getName()+" ...");
+            LOGGER.info("Using index on "+indexedPredicate.getLhsColumn().getName()+" ...");
             List<Tuple> prunedTuples =  getTuplesUsingIndex(indexedPredicate);
             for(Tuple t : prunedTuples){
                 boolean includeTuple = true;
@@ -452,6 +467,7 @@ public class DbClient {
      * Index Related Methods
      *
      *
+     *
      * */
 
 
@@ -480,7 +496,7 @@ public class DbClient {
             System.out.println("Key could not be serialized.");
         }
 
-        System.out.println("**DBClient: Index Metadata for " + indexMetadata.getRelationName() + " created.**");
+        LOGGER.info("**DBClient: Index Metadata for " + indexMetadata.getRelationName() + " created.**");
 
         return true;
     }
@@ -511,12 +527,13 @@ public class DbClient {
             }
 
         } catch (DatabaseException dbe) {
-            System.out.println("Error putting entry ");
+            LOGGER.severe("Error putting entry ");
+
             dbe.printStackTrace();
             abort();
             throw dbe;
         } catch (Exception e) {
-            System.out.println("Key could not be serialized.");
+            LOGGER.severe("Key could not be serialized.");
             e.printStackTrace();
         }
 
@@ -600,7 +617,7 @@ public class DbClient {
             System.err.println(e.toString());
             e.printStackTrace();
         } finally {
-            System.out.println("Index Created");
+            LOGGER.info("Index Created");
             relCursor.close();
         }
     }
@@ -688,7 +705,64 @@ public class DbClient {
 
             //update the database
             dbEnv.getDB().put(myDbEnv.getUserTxn(), indexKey, indexTupleEntry);
-            System.out.println("index entry updated.");
+        }
+        catch (DatabaseException dbe) {
+            System.out.println("Error putting entry ");
+            dbe.printStackTrace();
+            throw dbe;
+        }
+        catch (Exception e){
+            System.err.println("Error in updating index..");
+        }
+    }
+
+
+    /**
+     *
+     * this method deletes index entry for a tuple.
+     *
+     * */
+    public void deleteIndexForOldTupleFromColumnIndex(DbEnv dbEnv, DatabaseEntry primaryKey, String colName, Tuple tuple){
+        Relation relation = Relation.getRelation(tuple.getRelationName());
+
+        // get the value of the indexed attribute
+        DbValue dbValue = tuple.getDbValues()[relation.getColumn(colName).index];
+
+        try
+        {
+            // create a key from attribute value
+            DatabaseEntry indexKey = getDbEntryFromDbValueByType(dbValue);
+
+            DatabaseEntry indexTupleEntry = new DatabaseEntry();
+            TupleBinding indexTupleBinding  = new IndexTupleBinding();
+            IndexTuple indexTuple = new IndexTuple(relation.getName());
+
+            if (dbEnv.getDB().get(DbEnv.getUserTxn(), indexKey, indexTupleEntry, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+
+            { // value is already indexed. update the primary key.
+
+                indexTuple = (IndexTuple) indexTupleBinding.entryToObject(indexTupleEntry);
+
+                // remove primary key for the deleted tuple from index tuple
+                indexTuple.removePrimaryKeyFromMainTable(primaryKey);
+            }
+
+            if(indexTuple.getNumRecords() == 0) {
+
+                // delete the index record if no primary keys are left.
+                dbEnv.getDB().delete(myDbEnv.getUserTxn(), indexKey);
+                LOGGER.info("index entry deleted for "+ colName + " ...");
+
+            }else {
+
+                // create database entry for new record.
+                indexTupleBinding.objectToEntry(indexTuple, indexTupleEntry);
+
+                //update the database
+                dbEnv.getDB().put(myDbEnv.getUserTxn(), indexKey, indexTupleEntry);
+
+                LOGGER.info("index entry updated for "+ colName + " ...");
+            }
         }
         catch (DatabaseException dbe) {
             System.out.println("Error putting entry ");

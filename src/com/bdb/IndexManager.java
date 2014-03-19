@@ -37,8 +37,6 @@ public class IndexManager {
     }
 
     public static void createIndexTupleForNewTuple(String relName, DatabaseEntry pKey, Tuple tuple){
-
-
         IndexMetadata metadata = IndexMetadata.getMetadata(relName);
 
         if(null == metadata || metadata.numColsIndexed <= 0) return;
@@ -48,6 +46,31 @@ public class IndexManager {
             dbClient.addIndexForNewTuple(dbClient.getMyDbEnv(), pKey, columnName, tuple);
         }
 
+    }
+
+    public static void deleteIndexTupleForOldTuple(String relName, DatabaseEntry pKey, Tuple tuple){
+        IndexMetadata metadata = IndexMetadata.getMetadata(relName);
+
+        if(null == metadata || metadata.numColsIndexed <= 0) return;
+
+        for (String columnName : metadata.indexedColumnNames){
+            DbClient dbClient = new DbClient("mydbenv","index_"+relName+"_"+columnName);
+            dbClient.deleteIndexForOldTupleFromColumnIndex(dbClient.getMyDbEnv(), pKey, columnName, tuple);
+        }
+    }
+
+    public static void updateIndexTupleForNewTuple(String relName, DatabaseEntry pKey, Tuple tuple, QueryType queryType){
+        IndexMetadata metadata = IndexMetadata.getMetadata(relName);
+
+        if(null == metadata || metadata.numColsIndexed <= 0) return;
+
+        for (String columnName : metadata.indexedColumnNames){
+            DbClient dbClient = new DbClient("mydbenv","index_"+relName+"_"+columnName);
+            if(queryType.equals(QueryType.DELETE_INDEX))
+                dbClient.deleteIndexForOldTupleFromColumnIndex(dbClient.getMyDbEnv(), pKey, columnName, tuple);
+            else if(queryType.equals(QueryType.ADD_INDEX))
+                dbClient.addIndexForNewTuple(dbClient.getMyDbEnv(), pKey, columnName, tuple);
+        }
     }
 
     private static void createIndexForAllExistingRecords(Relation relation, String columnName){
@@ -99,7 +122,9 @@ public class IndexManager {
             return null;
 
         for (Predicate p : predicates) {
-            if(IndexManager.hasIndex(p.getLhsRelation(), p.getLhsColumn().getName()))
+
+            // Only use index for equals predicate.
+            if(IndexManager.hasIndex(p.getLhsRelation(), p.getLhsColumn().getName()) && (p.getOperator().equals(OpType.EQUALS)))
             {
                 System.out.println("WILL BE USING INDEX FOR "+p.getLhsColumn().getName());
                 return p;

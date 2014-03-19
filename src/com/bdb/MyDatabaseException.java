@@ -7,5 +7,6 @@ public class MyDatabaseException extends Exception{
     public MyDatabaseException(String s) {
         //super(s);
         System.err.println(s);
+
     }
 }

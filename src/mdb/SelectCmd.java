@@ -44,7 +44,7 @@ public class SelectCmd extends Select {
             /* create project list */
             AstNode pnode = (AstNode)getProj_list();
             if(pnode instanceof All)
-                System.out.println("project all");
+                System.out.print("");
             else if(pnode instanceof Plist){
                 for (c.FirstElement(pnode.arg[0]); c.MoreElement(); c.NextElement() ) {
                     projectionList.add(Projection.create(relations, c.node.toString().trim()));

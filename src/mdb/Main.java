@@ -339,11 +339,13 @@ public class Main {
 
             Long begin = System.currentTimeMillis();
 
+            ( ( SqlLang ) root ).print();
+            System.out.println();
             ((SqlLang) root).execute();
             Long end = System.currentTimeMillis();
             System.out.println("(time taken = "+ ((end-begin)) + "ms )");
 
-            ( ( SqlLang ) root ).print();
+
             System.out.println();
             pw.flush();
 
