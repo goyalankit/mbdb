@@ -29,7 +29,7 @@ public class DbClient {
     private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
 
-    private final static Logger LOGGER = Logger.getLogger(DbClient.class.getName());
+    public final static Logger LOGGER = Logger.getLogger(DbClient.class.getName());
 
     public DbClient(String dbEnvFilename, String relation) {
         if (this.dbEnvFilename == null || this.dbEnvFilename == "mydbenv") {
@@ -44,7 +44,7 @@ public class DbClient {
         myDbEnv.setup(myDbEnvPath, // path to the environment home
                 false, relation);      // is this environment read-only?
 
-        LOGGER.setLevel(Level.OFF);
+        LOGGER.setLevel(Level.INFO);
 
     }
 

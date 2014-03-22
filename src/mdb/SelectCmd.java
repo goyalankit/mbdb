@@ -133,7 +133,7 @@ public class SelectCmd extends Select {
 
         String rhs = joinClause.arg[1].toString();
         s = null;
-        if(lhs.contains(".")){
+        if(rhs.contains(".")){
             s = rhs.split("\\.");
             rhs_relation = s[0].trim();
             rhs_column = s[1].trim();

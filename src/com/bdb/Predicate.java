@@ -110,6 +110,10 @@ public class Predicate {
         return false;
     }
 
+    public PredType getType() {
+        return type;
+    }
+
     public Tuple applyJoin(Tuple t1, Tuple t2){
         DbValue dbValue1, dbValue2;
 
@@ -154,14 +158,10 @@ public class Predicate {
 
 
         if(dbValue1.equals(dbValue2)){
-                joinedTuple = new JoinedTuple(t1, t2, lhsColumn, rhsColumn);
+            joinedTuple = new JoinedTuple(t1, t2, lhsColumn, rhsColumn);
         }
 
         return joinedTuple;
-    }
-
-    public PredType getType() {
-        return type;
     }
 
     public Relation getLhsRelation() {
@@ -173,6 +173,8 @@ public class Predicate {
     }
 
     public Column getLhsColumn() { return lhsColumn; }
+
+    public Column getRhsColumn() { return rhsColumn; }
 
     public DbValue getRhsValue() { return rhsValue; }
 

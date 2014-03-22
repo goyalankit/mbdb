@@ -16,6 +16,8 @@ public class SelectQueryProcessor {
     private HashMap<Relation, Boolean> relationJoined;
     private List<Tuple> joinedTuples;
 
+    private static Integer HASH_BLOCK_SIZE = 1000; // blocks of 1000 records.
+
     public SelectQueryProcessor(QueryType type, List<Relation> relations, List<Predicate> predicates) {
         this.type = type;
         this.relations = relations;
@@ -81,21 +83,27 @@ public class SelectQueryProcessor {
         relationJoined = new HashMap<Relation, Boolean>();
         joinedTuples = new ArrayList<Tuple>();
 
+        //TODO: decide policy on when to use hash join.
+        boolean useHashJoin = true;
+
         for (Predicate p : joinPredicates) {
 
             /* get the relations in join predicate */
             Relation r1 = p.getLhsRelation();
             Relation r2 = p.getRhsRelation();
 
-            List<Tuple> tuples1 = relationJoined.containsKey(r1) ? joinedTuples : relationTuples.get(r1);
-            List<Tuple> tuples2 = relationJoined.containsKey(r2) ? joinedTuples : relationTuples.get(r2);
+            boolean isTuple1Joined = relationJoined.containsKey(r1);
+            boolean isTuple2Joined = relationJoined.containsKey(r2);
+
+            List<Tuple> tuples1 = isTuple1Joined ? joinedTuples : relationTuples.get(r1);
+            List<Tuple> tuples2 = isTuple2Joined ? joinedTuples : relationTuples.get(r2);
 
             List<Tuple> filteredTuples = new ArrayList<Tuple>();
 
 
             //If both the relations have already been joined. We need to filter out the results from the
             //joined relation. It's similar to self-join.
-            boolean both_joined = (relationJoined.containsKey(r1) && relationJoined.containsKey(r2));
+            boolean both_joined = (isTuple1Joined && isTuple2Joined);
 
             //self join.
             if(r1.equals(r2) || both_joined ){
@@ -105,14 +113,11 @@ public class SelectQueryProcessor {
                         filteredTuples.add(ntuple);
                 }
             }else{
-                for (Tuple t1 : tuples1) {
-                    for (Tuple t2 : tuples2) {
-                        Tuple ntuple = p.applyJoin(t1, t2);
-                        if (null != ntuple) {
-                            filteredTuples.add(ntuple);
-                        }
-                    }
-                }
+
+                if(useHashJoin)
+                    filteredTuples = hashJoin(tuples1, tuples2, isTuple1Joined, isTuple2Joined, p);
+                else
+                    filteredTuples = naturalJoin(tuples1, tuples2, p);
             }
 
             relationJoined.put(r1, true);
@@ -121,6 +126,114 @@ public class SelectQueryProcessor {
             joinedTuples = filteredTuples;
         }
     }
+
+    public List<Tuple> naturalJoin(List<Tuple> tuples1, List<Tuple> tuples2, Predicate p){
+
+        List<Tuple> filteredTuples = new ArrayList<Tuple>();
+
+        for (Tuple t1 : tuples1) {
+            for (Tuple t2 : tuples2) {
+                Tuple ntuple = p.applyJoin(t1, t2);
+                if (null != ntuple) {
+                    filteredTuples.add(ntuple);
+                }
+            }
+        }
+
+        return filteredTuples;
+    }
+
+    public List<Tuple> hashJoin(List<Tuple> tuples1, List<Tuple> tuples2, boolean isTuple1Joined, boolean isTuple2Joined,  Predicate p){
+
+        boolean outerIsLeft = tuples1.size() < tuples2.size();
+
+        List<Tuple> innerRelationTuples;
+        HashMap<DbValue, Set<Integer>> tuple1HashMap;
+
+        // create hash from tuple 1.
+        if(outerIsLeft){
+            tuple1HashMap = createTableHash(tuples1, p, true, isTuple1Joined);
+            innerRelationTuples = tuples2;
+            DbClient.LOGGER.info("Using hash join with "+p.getLhsRelation().getName()+" as outer relation.");
+        }
+        else{
+            tuple1HashMap = createTableHash(tuples2, p, false, isTuple2Joined);
+            innerRelationTuples = tuples1;
+            DbClient.LOGGER.info("Using hash join with "+p.getRhsRelation().getName()+" as outer relation.");
+        }
+
+        List<Tuple> filteredTuples = new ArrayList<Tuple>();
+
+        for (Tuple t2 : innerRelationTuples) {
+            DbValue dbValue2;
+            if(outerIsLeft)
+                dbValue2 = getInnertTableDbValueForHashJoin(t2, p, outerIsLeft, isTuple2Joined);
+            else
+                dbValue2 = getInnertTableDbValueForHashJoin(t2, p, outerIsLeft, isTuple1Joined);
+
+            if(tuple1HashMap.containsKey(dbValue2)){
+                for (Integer i : tuple1HashMap.get(dbValue2)) {
+
+                    if (outerIsLeft)
+                        filteredTuples.add(new JoinedTuple(tuples1.get(i), t2, p.getLhsColumn(), p.getRhsColumn()));
+                    else
+                        filteredTuples.add(new JoinedTuple(t2, tuples2.get(i), p.getLhsColumn(), p.getRhsColumn()));
+                }
+            }
+        }
+
+        return filteredTuples;
+    }
+
+    private DbValue getInnertTableDbValueForHashJoin(Tuple t2, Predicate p, boolean outerIsLeft, boolean isTupleJoined){
+
+        DbValue dbValue2;
+
+        if(isTupleJoined)
+            if(outerIsLeft)
+                dbValue2 = ((JoinedTuple) t2).getColumnValue(p.getRhsRelation().getName() + "." + p.getRhsColumn().getName());
+            else
+                dbValue2 = ((JoinedTuple) t2).getColumnValue(p.getLhsRelation().getName() + "." + p.getLhsColumn().getName());
+
+        else
+            if(outerIsLeft)
+                dbValue2 = t2.getDbValues()[p.getRhsColumn().index];
+            else
+                dbValue2 = t2.getDbValues()[p.getLhsColumn().index];
+
+
+        return dbValue2;
+    }
+
+    private HashMap<DbValue, Set<Integer>> createTableHash(List<Tuple> tuples, Predicate p, boolean outerIsLeft, boolean isTupleJoined){
+        HashMap<DbValue, Set<Integer>> tuple1HashMap = new HashMap<DbValue, Set<Integer>>();
+
+        for (int i = 0; i < tuples.size(); i++) {
+            DbValue dbValue1;
+            if(isTupleJoined)
+                if(outerIsLeft)
+                    dbValue1 = ((JoinedTuple) tuples.get(i)).getColumnValue(p.getLhsRelation().getName() + "." + p.getLhsColumn().getName());
+                else
+                    dbValue1 = ((JoinedTuple) tuples.get(i)).getColumnValue(p.getRhsRelation().getName() + "." + p.getRhsColumn().getName());
+            else
+                if(outerIsLeft)
+                    dbValue1 = tuples.get(i).getDbValues()[p.getLhsColumn().index];
+                else
+                    dbValue1 = tuples.get(i).getDbValues()[p.getRhsColumn().index];
+
+            if(tuple1HashMap.containsKey(dbValue1))
+                tuple1HashMap.get(dbValue1).add(i);
+            else{
+                Set<Integer> tupleValues = new HashSet<Integer>();
+                tupleValues.add(i);
+                tuple1HashMap.put(dbValue1, tupleValues);
+            }
+        }
+
+        return tuple1HashMap;
+
+    }
+
 
     public void cross(HashMap<Relation, List<Tuple>> relationTuples) {
 
