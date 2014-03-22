@@ -240,9 +240,10 @@ public class SelectQueryProcessor {
         if(relationJoined !=null && relationJoined.size() == relations.size())
             return;
 
-        List<Tuple> crossedTuplesResult = new ArrayList<Tuple>();
+
 
         List<Tuple> tupleSet1;
+        List<Tuple> crossedTuplesResult = new ArrayList<Tuple>();;
 
         //if some tuples have been joined
         if (joinedTuples != null && joinedTuples.size() > 0)
@@ -258,8 +259,10 @@ public class SelectQueryProcessor {
             //Relation in the list that has not been joined.
             if ((relationJoined == null) || !relationJoined.containsKey(rel)) {
 
-                if (i > 2 && crossedTuplesResult.size() > 0)
+                if (i > 1 && crossedTuplesResult.size() > 0)
                     tupleSet1 = crossedTuplesResult; //TODO: may be there are no tuples
+
+                crossedTuplesResult = new ArrayList<Tuple>();
 
                 for (Tuple joinedTuple : tupleSet1) {
                     for (Tuple t2 : relationTuples.get(rel)) {
