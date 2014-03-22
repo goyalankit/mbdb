@@ -87,9 +87,7 @@ public class Projection {
                     if(dbValuesList[i].columnName.equals(p.column.getName())
                             || dbValuesList[i].columnName.equals(p.relation.getName() + "." + p.column.getName()))
                     {
-
                         showIndices.add(i);
-
                     } else
                     {
                         continue;
