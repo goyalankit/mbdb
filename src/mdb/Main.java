@@ -2,11 +2,13 @@ package mdb;
 
 import Jakarta.util.FixDosOutputStream;
 import Jakarta.util.Util;
+import com.bdb.DbClient;
 
 import java.io.*;
 import java.net.URI;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
 
 //**************************************************
 // Executing the main of Main will perform the following:
@@ -192,6 +194,9 @@ public class Main {
 //                    + e.getMessage() );
 //        }
 
+        //set default level of logger to off.
+        DbClient.LOGGER.setLevel(Level.OFF);
+
         non_switch_args = 0;
         for ( i=0; i < argc; i++ ) {
             if ( args[i].charAt( 0 ) == '-' ) {
@@ -210,6 +215,9 @@ public class Main {
 + e.getMessage() );
                         }
                         i++;
+                        break;
+                    }else if(args[i].charAt( j ) == 'd'){
+                        DbClient.LOGGER.setLevel(Level.INFO);
                         break;
                     }
                     else

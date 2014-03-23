@@ -65,9 +65,12 @@ public class SelectQueryProcessor {
             tuples.put(rel, dbClient.getTuplesWithPredicate(localPredicates.get(rel)));
         }
 
+        long begin = System.currentTimeMillis();
         /* call to apply join predicates */
         if (joinPredicates.size() != 0)
             join(tuples);
+
+        DbClient.LOGGER.info("Time Taken By Join = "+ (System.currentTimeMillis() -begin));
 
         cross(tuples);
 
@@ -119,6 +122,8 @@ public class SelectQueryProcessor {
                 else
                     filteredTuples = naturalJoin(tuples1, tuples2, p);
             }
+
+
 
             relationJoined.put(r1, true);
             relationJoined.put(r2, true);

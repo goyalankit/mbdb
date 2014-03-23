@@ -74,7 +74,7 @@ public class IndexManager {
     }
 
     private static void createIndexForAllExistingRecords(Relation relation, String columnName){
-        System.out.println("Now creating index for all records....");
+        DbClient.LOGGER.info("Now creating index for all records....");
 
         // index table name format: index_relName_colName
         DbClient dbClient = new DbClient("mydbenv","index_"+relation.getName()+"_"+columnName);
@@ -126,7 +126,7 @@ public class IndexManager {
             // Only use index for equals predicate.
             if(IndexManager.hasIndex(p.getLhsRelation(), p.getLhsColumn().getName()) && (p.getOperator().equals(OpType.EQUALS)))
             {
-                System.out.println("WILL BE USING INDEX FOR "+p.getLhsColumn().getName());
+                DbClient.LOGGER.info("WILL BE USING INDEX FOR "+p.getLhsColumn().getName());
                 return p;
             }
         }
