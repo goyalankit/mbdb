@@ -1,11 +1,13 @@
 package com.bdb;
 
+import mdb.Main;
+
 import java.util.*;
 
 /**
  * Created by ankit on 2/16/14.
  */
-public class SelectQueryProcessor {
+public class SelectQueryProcessor{
     private List<Relation> relations;
 
     private List<Predicate> predicates;
@@ -15,8 +17,6 @@ public class SelectQueryProcessor {
 
     private HashMap<Relation, Boolean> relationJoined;
     private List<Tuple> joinedTuples;
-
-    private static Integer HASH_BLOCK_SIZE = 1000; // blocks of 1000 records.
 
     public SelectQueryProcessor(QueryType type, List<Relation> relations, List<Predicate> predicates) {
         this.type = type;
@@ -53,24 +53,57 @@ public class SelectQueryProcessor {
 
         /* First apply the local predicates */
 
-        for (Relation rel : relations) {
-            DbClient dbClient = new DbClient("mydbenv", rel.getName());
+        List<FetchInParallel> fetchInParallels = new ArrayList<FetchInParallel>();
 
-            /*
-                Get the tuples for ALL the relations.
-                Return all the tuples based on predicates. otherwise all tuples
-                if no predicate is present.
-            */
+            long begin = System.currentTimeMillis();
 
-            tuples.put(rel, dbClient.getTuplesWithPredicate(localPredicates.get(rel)));
+            for (Relation rel : relations) {
+                DbClient dbClient = new DbClient("mydbenv", rel.getName());
+
+                /*
+                    Get the tuples for ALL the relations.
+                    Return all the tuples based on predicates. otherwise all tuples
+                    if no predicate is present.
+                */
+
+                if(Main.useParallel){
+                    FetchInParallel fp = new FetchInParallel(dbClient, localPredicates.get(rel), rel);
+                    DbClient.LOGGER.info("Using threads to get the info...");
+                    fetchInParallels.add(fp);
+                    fp.start();
+                }
+                else{
+                    tuples.put(rel, dbClient.getTuplesWithPredicate(localPredicates.get(rel)));
+                }
         }
 
-        long begin = System.currentTimeMillis();
+        if(Main.useParallel) {
+
+            for (FetchInParallel fp : fetchInParallels) {
+                try {
+                    fp.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for (FetchInParallel fp : fetchInParallels) {
+                tuples.put(fp.relation, fp.tuples);
+
+                System.out.println("Time taken when using thread = "+Main.useParallel+ " is "+ (System.currentTimeMillis() -  begin));
+            }
+
+        }
+
+
+
+
+        long begin2 = System.currentTimeMillis();
         /* call to apply join predicates */
         if (joinPredicates.size() != 0)
             join(tuples);
 
-        DbClient.LOGGER.info("Time Taken By Join = "+ (System.currentTimeMillis() -begin));
+        DbClient.LOGGER.info("Time Taken By Join = "+ (System.currentTimeMillis() -begin2));
 
         cross(tuples);
 
@@ -102,7 +135,6 @@ public class SelectQueryProcessor {
             List<Tuple> tuples2 = isTuple2Joined ? joinedTuples : relationTuples.get(r2);
 
             List<Tuple> filteredTuples = new ArrayList<Tuple>();
-
 
             //If both the relations have already been joined. We need to filter out the results from the
             //joined relation. It's similar to self-join.
@@ -279,6 +311,25 @@ public class SelectQueryProcessor {
 
         /* If no tuple was added above then don't change the joined tuple */
         joinedTuples = crossedTuplesResult.size() > 0 ? crossedTuplesResult : tupleSet1;
+    }
+
+    public class FetchInParallel extends Thread{
+        DbClient dbClient;
+        List<Predicate> localPredicate;
+        Relation relation;
+        List<Tuple> tuples;
+
+        public FetchInParallel(DbClient dbClient, List<Predicate> localPredicate, Relation relation) {
+            this.dbClient = dbClient;
+            this.localPredicate = localPredicate;
+            this.relation = relation;
+        }
+
+        public void run() {
+            DbClient.LOGGER.info("Running thread "+ Thread.currentThread().getId() + " " + Thread.activeCount());
+            this.tuples = dbClient.getTuplesWithPredicate(localPredicates.get(relation));
+            DbClient.LOGGER.info("FINISHED.");
+        }
     }
 
 }

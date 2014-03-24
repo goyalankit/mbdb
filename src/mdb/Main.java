@@ -27,6 +27,7 @@ public class Main {
     static Vector posArgs = new Vector();
 
     final public static String packageName =  Main.getPackageName() ;
+    public static boolean useParallel = false;
 
     private static URI baseURI ;
 
@@ -217,7 +218,12 @@ public class Main {
                         i++;
                         break;
                     }else if(args[i].charAt( j ) == 'd'){
+                        System.out.println("Running in DEBUG mode...");
                         DbClient.LOGGER.setLevel(Level.INFO);
+                        break;
+                    }else if(args[i].charAt( j ) == 'p'){
+                        System.out.println("Running in parallel mode....");
+                        useParallel = true;
                         break;
                     }
                     else

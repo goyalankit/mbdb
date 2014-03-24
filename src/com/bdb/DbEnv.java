@@ -52,6 +52,7 @@ public class DbEnv {
         myEnv = new Environment(envHome, myEnvConfig);
 
 
+
         TransactionConfig txnConfig = new TransactionConfig();
         txnConfig.setReadUncommitted(true);
 

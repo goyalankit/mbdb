@@ -285,8 +285,6 @@ public class DbClient {
 
     // get tuples using index method below.
     public List<Tuple> getTuplesWithPredicate(List<Predicate> predicates) {
-
-
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
