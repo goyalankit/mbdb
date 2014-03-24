@@ -48,6 +48,11 @@ java -jar mdb.jar
 java -jar mdb.jar -f "filename"
 
 
+You may need to increase java heap size. MDB parser uses print writer to convert the parsed query to string.
+It causes the program to run out of heap memory. Although it is hardware dependent.
+java -Xmx2g -jar mdb.jar
+
+
 Optimizations
 ---
 
@@ -58,7 +63,8 @@ Optimizations
 4. Smart hashing. Hashing minimum possible data
    for hash join algorithm allowing it to run for large datasets.
 5. Additional sequence DB used to generate ids to keep data consistent in case of concurrent transactions(not implemented).
-6. Since Retrieval is the main bottleneck. Multiple threads can be used to fetch data.
+6. Since Retrieval is the main bottleneck. I decided to use Multiple threads to fetch data.(no improvement, however functionality
+ is present and can be enabled using -p flag)
 
 
 Benchmarks:
