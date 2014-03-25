@@ -54,7 +54,7 @@ public class DbEnv {
 
 
         TransactionConfig txnConfig = new TransactionConfig();
-        txnConfig.setReadUncommitted(true);
+        txnConfig.setReadUncommitted(false);
 
 
         if(userTxn == null){
@@ -105,7 +105,8 @@ public class DbEnv {
     }
 
     public Long getRelationKey(Transaction txn){
-        return  seq.get(userTxn, 1);
+        return System.currentTimeMillis();
+        //return  seq.get(userTxn, 1);
     }
 
     public Environment getEnv() { return myEnv; }

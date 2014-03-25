@@ -2,6 +2,7 @@ package com.bdb;
 
 import com.sleepycat.je.DatabaseEntry;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -9,7 +10,9 @@ import java.util.List;
  */
 public class IndexManager {
 
+
     //Cache index metadata.
+    public static HashMap<String, IndexMetadata> indexMetadataCache = new HashMap<String, IndexMetadata>();
 
     public static boolean hasIndex(Relation relation, String columnName){
         IndexMetadata metadata = IndexMetadata.getMetadata(relation.getName());
@@ -37,7 +40,13 @@ public class IndexManager {
     }
 
     public static void createIndexTupleForNewTuple(String relName, DatabaseEntry pKey, Tuple tuple){
-        IndexMetadata metadata = IndexMetadata.getMetadata(relName);
+        IndexMetadata metadata;
+        if(indexMetadataCache.containsKey(relName))
+            metadata = indexMetadataCache.get(relName);
+        else{
+            metadata = IndexMetadata.getMetadata(relName);
+            indexMetadataCache.put(relName, metadata);
+        }
 
         if(null == metadata || metadata.numColsIndexed <= 0) return;
 

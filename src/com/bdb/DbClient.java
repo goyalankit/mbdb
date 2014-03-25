@@ -25,7 +25,7 @@ public class DbClient {
 
     private DbEnv myDbEnv = new DbEnv();
     public static String dbEnvFilename = "mydbenv";
-    private static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
+    public static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
 
     public final static Logger LOGGER = Logger.getLogger(DbClient.class.getName());
@@ -56,6 +56,7 @@ public class DbClient {
     public static void abort() {
         DbEnv.getUserTxn().abort();
         invalidateCahe();
+        IndexManager.indexMetadataCache.clear();
         System.out.println("** Transaction Aborted **");
         DbEnv.endTransaction();
     }
@@ -114,7 +115,7 @@ public class DbClient {
 
         /* converting key to database entry object */
         EntryBinding keybinding = TupleBinding.getPrimitiveBinding(Long.class);
-        Long myKey = myDbEnv.getRelationKey(myDbEnv.getUserTxn());
+        Long myKey = System.currentTimeMillis(); //myDbEnv.getRelationKey(myDbEnv.getUserTxn());
 
         try {
             keybinding.objectToEntry(myKey, theKey);
@@ -122,7 +123,7 @@ public class DbClient {
 
         }
         myTupleBinding.objectToEntry(tuple, theData);
-        IndexManager.createIndexTupleForNewTuple(myDbEnv.getDB().getDatabaseName(), theKey, tuple);
+        IndexManager.createIndexTupleForNewTuple(myDbEnv.getDB().getDatabaseName(),  theKey, tuple);
 
         try {
             myDbEnv.getDB().put(myDbEnv.getUserTxn(), theKey, theData);
@@ -300,26 +301,30 @@ public class DbClient {
 
         if(null == indexedPredicate)
         { // Don't use any index.
-            Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
+            Cursor cursor = myDbEnv.getDB().openCursor(DbEnv.getUserTxn(), null);
             try { // always want to make sure the cursor gets closed
 
                 LOGGER.info("Not using any index..");
+                long begin = System.currentTimeMillis();
+
 
                 while (cursor.getNext(foundKey, foundData,
                         LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                    Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
-                    boolean includeTuple = true;
 
-                    if (!selectAll) {
-                        for (Predicate p : predicates) {
-                            if (!p.applyLocal(t))
-                                includeTuple = false;
+                        Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+
+                        boolean includeTuple = true;
+
+                        if (!selectAll) {
+                            for (Predicate p : predicates) {
+                                if (!p.applyLocal(t))
+                                    includeTuple = false;
+                            }
                         }
-                    }
-
-                    if (includeTuple) tuples.add(t);
-
+                        if (includeTuple) tuples.add(t);
                 }
+
+                LOGGER.info("Time taken for fetching.." + (System.currentTimeMillis() - begin));
             } catch (Exception e) {
                 System.err.println("Error on inventory cursor:");
                 System.err.println(e.toString());
@@ -389,8 +394,9 @@ public class DbClient {
 
         /* return if present in cache. */
         //TODO: Fix relation cache in case of transactional create database: FIXED....NEEDS TESTING
-        if (relationsCache.get(rel_name) != null)
+        if (relationsCache.get(rel_name) != null) {
             return relationsCache.get(rel_name);
+        }
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();

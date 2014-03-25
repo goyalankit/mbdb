@@ -11,7 +11,13 @@ public class MyTupleBinding extends TupleBinding{
 
     public Object entryToObject(TupleInput ti) {
         String name = ti.readString();
-        Relation relation = Relation.getRelation(name); /* get the corresponding relation object from metadata table */
+        Relation relation;
+
+        if (DbClient.relationsCache.containsKey(name)) {
+             relation = DbClient.relationsCache.get(name);
+        }else {
+             relation = Relation.getRelation(name); /* get the corresponding relation object from metadata table */
+        }
 
         Tuple tuple = new Tuple(relation);
         DbValue[] dbValues = new DbValue[relation.getNumFields()];
