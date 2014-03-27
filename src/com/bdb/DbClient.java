@@ -207,43 +207,78 @@ public class DbClient {
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
 
-        try { // always want to make sure the cursor gets closed
-            while (cursor.getNext(foundKey, foundData,
-                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+        Predicate indexedPredicate = IndexManager.useIndex(predicates);
+        if(null == indexedPredicate) {
+            try { // always want to make sure the cursor gets closed
+                while (cursor.getNext(foundKey, foundData,
+                        LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                    Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
 
-                boolean includeTuple = true;
+                    boolean includeTuple = true;
 
-                for (Predicate p : predicates) {
-                    if (!p.applyLocal(t))
-                        includeTuple = false;
+                    for (Predicate p : predicates) {
+                        if (!p.applyLocal(t))
+                            includeTuple = false;
+                    }
+
+                    if (includeTuple) {
+
+                        // This is done to prevent cloning of objects.
+                        // delete the old tuple.
+                        IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), foundKey, t, QueryType.DELETE_INDEX);
+                        for (Column column : updates.keySet())
+                            t.getDbValues()[column.getIndex()] = updates.get(column);
+
+                        myTupleBinding.objectToEntry(t, theData);
+                        myDbEnv.getDB().put(myDbEnv.getUserTxn(), foundKey, theData);
+
+                        // add the new tuple.
+                        IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), foundKey, t, QueryType.ADD_INDEX);
+                    }
+
                 }
 
-                if (includeTuple) {
+            } catch (Exception e) {
+                System.err.println("Error on inventory cursor:");
+                System.err.println(e.toString());
+                abort();
+                e.printStackTrace();
+            } finally {
+                cursor.close();
+            }
+        } else {
+
+            LOGGER.info("Using index to update.");
+            HashMap<DatabaseEntry, Tuple> prunedTuplesWithKeys = getTuplesWithKeysUsingIndex(indexedPredicate);
+
+            for(DatabaseEntry de : prunedTuplesWithKeys.keySet()){
+                Tuple t = prunedTuplesWithKeys.get(de);
+                boolean includeTuple = true;
+                for(Predicate p : predicates){
+                    if(!p.equals(indexedPredicate)){
+                        if (!p.applyLocal(t))
+                            includeTuple = false;
+                    }
+                }
+
+                if(includeTuple) {
 
                     // This is done to prevent cloning of objects.
                     // delete the old tuple.
-                    IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), foundKey, t, QueryType.DELETE_INDEX);
+                    IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), de, t, QueryType.DELETE_INDEX);
                     for (Column column : updates.keySet())
                         t.getDbValues()[column.getIndex()] = updates.get(column);
 
                     myTupleBinding.objectToEntry(t, theData);
-                    myDbEnv.getDB().put(myDbEnv.getUserTxn(), foundKey, theData);
+                    myDbEnv.getDB().put(myDbEnv.getUserTxn(), de, theData);
 
                     // add the new tuple.
-                    IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), foundKey, t, QueryType.ADD_INDEX);
+                    IndexManager.updateIndexTupleForNewTuple(t.getRelationName(), de, t, QueryType.ADD_INDEX);
+
                 }
-
             }
-
-        } catch (Exception e) {
-            System.err.println("Error on inventory cursor:");
-            System.err.println(e.toString());
-            abort();
-            e.printStackTrace();
-        } finally {
-            cursor.close();
         }
+
     }
 
     public void deleteTuplesWithPredicate(List<Predicate> predicates) {
@@ -254,33 +289,59 @@ public class DbClient {
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
 
-        try { // always want to make sure the cursor gets closed
-            while (cursor.getNext(foundKey, foundData,
-                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
+        Predicate indexedPredicate = IndexManager.useIndex(predicates);
+        if(null == indexedPredicate) {
+            try { // always want to make sure the cursor gets closed
+                while (cursor.getNext(foundKey, foundData,
+                        LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                    Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
 
-                boolean includeTuple = true;
+                    boolean includeTuple = true;
 
-                for (Predicate p : predicates) {
-                    if (!p.applyLocal(t))
-                        includeTuple = false;
+                    for (Predicate p : predicates) {
+                        if (!p.applyLocal(t))
+                            includeTuple = false;
+                    }
+
+                    if (includeTuple) {
+                        myDbEnv.getDB().delete(myDbEnv.getUserTxn(), foundKey);
+                        IndexManager.deleteIndexTupleForOldTuple(t.getRelationName(), foundKey, t);
+                    }
                 }
 
-                if (includeTuple) {
-                    myDbEnv.getDB().delete(myDbEnv.getUserTxn(), foundKey);
-                    IndexManager.deleteIndexTupleForOldTuple(t.getRelationName(), foundKey, t);
+            } catch (Exception e) {
+                System.err.println("Error on inventory cursor:");
+                System.err.println(e.toString());
+                abort();
+                e.printStackTrace();
+            } finally {
+                cursor.close();
+            }
+        }else{
+
+
+            LOGGER.info("Using index to delete.");
+            HashMap<DatabaseEntry, Tuple> prunedTuplesWithKeys = getTuplesWithKeysUsingIndex(indexedPredicate);
+
+            for(DatabaseEntry de : prunedTuplesWithKeys.keySet()){
+                Tuple t = prunedTuplesWithKeys.get(de);
+                boolean includeTuple = true;
+                for(Predicate p : predicates){
+                    if(!p.equals(indexedPredicate)){
+                        if (!p.applyLocal(t))
+                            includeTuple = false;
+                    }
+                }
+
+                if(includeTuple) {
+                    myDbEnv.getDB().delete(myDbEnv.getUserTxn(), de);
+                    IndexManager.deleteIndexTupleForOldTuple(t.getRelationName(), de, t);
                 }
             }
 
-        } catch (Exception e) {
-            System.err.println("Error on inventory cursor:");
-            System.err.println(e.toString());
-            abort();
-            e.printStackTrace();
-        } finally {
-            cursor.close();
         }
     }
+
 
 
     // get tuples using index method below.
@@ -652,6 +713,8 @@ public class DbClient {
      *
      * */
 
+
+    // This method has a duplicate method. Added at the last minute.
     public List<Tuple> getTuplesUsingIndex(Predicate predicate){
 
         List<Tuple> tuples = new ArrayList<Tuple>();
@@ -689,6 +752,44 @@ public class DbClient {
         return tuples;
     }
 
+
+    // This is a duplicate method for the above method. With a different return type.
+    public HashMap<DatabaseEntry, Tuple> getTuplesWithKeysUsingIndex(Predicate predicate){
+
+        HashMap<DatabaseEntry, Tuple> tuples = new HashMap<DatabaseEntry, Tuple>();
+        DbClient dbClient = new DbClient("mydbenv",
+                "index_"+predicate.getLhsRelation().getName()+"_"+predicate.getLhsColumn().getName());
+
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        DbValue searchValue = predicate.getRhsValue();
+
+        // Get the key for index table in database entry type
+        DatabaseEntry searchKey = getDbEntryFromDbValueByType(searchValue);
+
+        TupleBinding indexTupleBinding  = new IndexTupleBinding();
+
+        TupleBinding myTupleBinding = new MyTupleBinding();
+
+
+        // Find the key in secondary database and iterate over keys.
+        if (dbClient.getMyDbEnv().getDB().get(DbEnv.getUserTxn(), searchKey, foundData, LockMode.DEFAULT)
+                == OperationStatus.SUCCESS) {
+
+            IndexTuple indexTuple = (IndexTuple) indexTupleBinding.entryToObject(foundData);
+
+            DatabaseEntry tupleInMain = new DatabaseEntry();
+            // iterate over keys and find them in main database.
+            for(DatabaseEntry de : indexTuple.recordKeys){
+                if (myDbEnv.getDB().get(DbEnv.getUserTxn(), de, tupleInMain, LockMode.DEFAULT)
+                        == OperationStatus.SUCCESS) {
+                    tuples.put(de, (Tuple) myTupleBinding.entryToObject(tupleInMain));
+                }
+            }
+        }
+
+        return tuples;
+    }
 
     /**
      *
