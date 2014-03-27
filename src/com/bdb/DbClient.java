@@ -47,13 +47,16 @@ public class DbClient {
     //begin new transaction
 
     public static void commit() {
-        DbEnv.getUserTxn().commit();
+        if(null != DbEnv.getUserTxn())
+            DbEnv.getUserTxn().commit();
         System.out.println("** Transaction Committed **");
         DbEnv.endTransaction();
     }
 
     public static void abort() {
-        DbEnv.getUserTxn().abort();
+
+        if(null != DbEnv.getUserTxn())
+            DbEnv.getUserTxn().abort();
         invalidateCahe();
         IndexManager.indexMetadataCache.clear();
         System.out.println("** Transaction Aborted **");
@@ -201,7 +204,6 @@ public class DbClient {
 
 
     public void updateTuplesWithPredicate(List<Predicate> predicates, Map<Column, DbValue> updates) {
-        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
 
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
@@ -209,7 +211,9 @@ public class DbClient {
 
         Predicate indexedPredicate = IndexManager.useIndex(predicates);
         if(null == indexedPredicate) {
+            Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
             try { // always want to make sure the cursor gets closed
+
                 while (cursor.getNext(foundKey, foundData,
                         LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                     Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
@@ -282,16 +286,15 @@ public class DbClient {
     }
 
     public void deleteTuplesWithPredicate(List<Predicate> predicates) {
-
-        Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
-
         DatabaseEntry foundKey = new DatabaseEntry();
         DatabaseEntry foundData = new DatabaseEntry();
         TupleBinding myTupleBinding = new MyTupleBinding();
 
         Predicate indexedPredicate = IndexManager.useIndex(predicates);
         if(null == indexedPredicate) {
+            Cursor cursor = myDbEnv.getDB().openCursor(myDbEnv.getUserTxn(), null);
             try { // always want to make sure the cursor gets closed
+
                 while (cursor.getNext(foundKey, foundData,
                         LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                     Tuple t = (Tuple) myTupleBinding.entryToObject(foundData);
