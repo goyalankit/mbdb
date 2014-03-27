@@ -23,7 +23,7 @@ public class DbClient {
     private static DatabaseEntry theKey = new DatabaseEntry();
     private static DatabaseEntry theData = new DatabaseEntry();
 
-    private DbEnv myDbEnv = new DbEnv();
+    public DbEnv myDbEnv = new DbEnv();
     public static String dbEnvFilename = "mydbenv";
     public static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 

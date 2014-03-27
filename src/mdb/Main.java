@@ -3,7 +3,6 @@ package mdb;
 import Jakarta.util.FixDosOutputStream;
 import Jakarta.util.Util;
 import com.bdb.DbClient;
-import com.bdb.Relation;
 
 import java.io.*;
 import java.net.URI;
@@ -281,7 +280,7 @@ public class Main {
         props.setProperty( "output", pw );
 
 
-        Relation.buildCache();
+        //Relation.buildCache();
 
         // Step 5: Get input and parse until an empty line is entered.
         //         An empty line is something with "." only.

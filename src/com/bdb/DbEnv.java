@@ -97,6 +97,7 @@ public class DbEnv {
 
     public static void endTransaction(){
         userTxn = null;
+
         //userTxn.setTxnNull();
     }
 
