@@ -1,7 +1,6 @@
 Design
 ---
 
-
 1. It is assumed that all the relations fit into the memory.
 
 2. Creation of database is not a part of transaction. BDB transactions doesn't support full cleanup.
@@ -31,7 +30,7 @@ A new database with name new_database will be created for you.
 4. Exit;
 .
 
-Exit command takes you out of the mdb shell.
+Exit command will abort and takes you out of the mdb shell.
 
 USAGE INSTRUCTIONS
 ---

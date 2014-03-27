@@ -97,7 +97,7 @@ public class DbClient {
                 e.printStackTrace();
             }
 
-            abort();
+//            abort();
             throw dbe;
         }
 
@@ -137,7 +137,7 @@ public class DbClient {
                 e.printStackTrace();
             }
 
-            abort();
+            //abort();
             throw dbe;
         }
         LOGGER.info("**DBClient: Tuple inserted. Not commited yet**");
@@ -245,7 +245,7 @@ public class DbClient {
             } catch (Exception e) {
                 System.err.println("Error on inventory cursor:");
                 System.err.println(e.toString());
-                abort();
+//                abort();
                 e.printStackTrace();
             } finally {
                 cursor.close();
@@ -315,7 +315,7 @@ public class DbClient {
             } catch (Exception e) {
                 System.err.println("Error on inventory cursor:");
                 System.err.println(e.toString());
-                abort();
+//                abort();
                 e.printStackTrace();
             } finally {
                 cursor.close();
@@ -577,7 +577,7 @@ public class DbClient {
 
         } catch (DatabaseException dbe) {
             System.out.println("Error putting entry ");
-            abort();
+//            abort();
             throw dbe;
         } catch (Exception e) {
             e.printStackTrace();
@@ -618,7 +618,7 @@ public class DbClient {
             LOGGER.severe("Error putting entry ");
 
             dbe.printStackTrace();
-            abort();
+//            abort();
             throw dbe;
         } catch (Exception e) {
             LOGGER.severe("Key could not be serialized.");
