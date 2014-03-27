@@ -4,6 +4,7 @@
 package mdb;
 
 import com.bdb.DbClient;
+import com.bdb.Relation;
 
 import java.io.File;
 
@@ -23,6 +24,8 @@ public class OpenCmd extends Open {
             envDir.mkdir(); //make directory if it doesn't exist yet
             DbClient.dbEnvFilename = envDir.getName();
         }
+
+        Relation.buildCache();
 
         //invalidate the relation cache.
         DbClient.invalidateCahe();

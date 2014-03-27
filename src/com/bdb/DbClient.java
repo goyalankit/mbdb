@@ -27,7 +27,6 @@ public class DbClient {
     public static String dbEnvFilename = "mydbenv";
     public static Map<String, Relation> relationsCache = new HashMap<String, Relation>();
 
-
     public final static Logger LOGGER = Logger.getLogger(DbClient.class.getName());
 
     public DbClient(String dbEnvFilename, String relation) {
@@ -115,8 +114,8 @@ public class DbClient {
 
         /* converting key to database entry object */
         EntryBinding keybinding = TupleBinding.getPrimitiveBinding(Long.class);
-        Long myKey = System.currentTimeMillis(); //myDbEnv.getRelationKey(myDbEnv.getUserTxn());
-
+//        Long myKey = System.currentTimeMillis(); //myDbEnv.getRelationKey(myDbEnv.getUserTxn());
+        Long myKey = myDbEnv.getRelationKey(myDbEnv.getUserTxn());
         try {
             keybinding.objectToEntry(myKey, theKey);
         } catch (Exception e) {

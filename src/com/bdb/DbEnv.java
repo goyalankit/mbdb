@@ -97,7 +97,7 @@ public class DbEnv {
 
     public static void endTransaction(){
         userTxn = null;
-
+        CacheManager.closeAllClients();
         //userTxn.setTxnNull();
     }
 
@@ -106,8 +106,8 @@ public class DbEnv {
     }
 
     public Long getRelationKey(Transaction txn){
-        return System.currentTimeMillis();
-        //return  seq.get(userTxn, 1);
+        //return System.currentTimeMillis();
+        return  seq.get(userTxn, 1);
     }
 
     public Environment getEnv() { return myEnv; }
@@ -123,7 +123,7 @@ public class DbEnv {
                 myDatabase.close();
                 seq.close();
                 mySeqDatabase.close();
-                indexDatabase.close();
+                //indexDatabase.close();
                 /* Finally, close the environment.*/
                 myEnv.close();
             } catch(DatabaseException dbe) {
