@@ -1,5 +1,6 @@
 package com.bdb;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,9 +42,23 @@ public class Relation {
      * @return
      */
      public static Relation getRelation(String relation){
+         if(DbClient.relationsCache.containsKey(relation))
+             return DbClient.relationsCache.get(relation);
+
          DbClient dbClient = new DbClient("mydbenv","metadata");
          return dbClient.getRelation(relation);
      }
+
+    public static void buildCache(){
+        DbClient dbClient = new DbClient("mydbenv","metadata");
+        dbClient.buildRelationCache();
+
+        for(Relation r : DbClient.relationsCache.values()){
+            DbClient dbClient1 = new DbClient("mydbenv", r.getName());
+            dbClient1.getTuplesWithPredicate(new ArrayList<Predicate>());
+        }
+    }
+
 
     /**
      *  select * from a given table(Relation)

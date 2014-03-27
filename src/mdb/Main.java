@@ -3,6 +3,7 @@ package mdb;
 import Jakarta.util.FixDosOutputStream;
 import Jakarta.util.Util;
 import com.bdb.DbClient;
+import com.bdb.Relation;
 
 import java.io.*;
 import java.net.URI;
@@ -200,7 +201,31 @@ public class Main {
 
         non_switch_args = 0;
         for ( i=0; i < argc; i++ ) {
-            if ( args[i].charAt( 0 ) == '-' ) {
+            if(args[i].equals("--delete")){
+                String dirName = args[i+1];
+                i++;
+
+                File index = new File(dirName);
+                String[]entries = index.list();
+                for(String s1: entries){
+                    File currentFile = new File(index.getPath(),s1);
+                    currentFile.delete();
+                }
+
+                index.delete();
+            }else if(args[i].equals("--create")){
+                File envDir = new File(System.getProperty("user.dir") + File.separator + args[i+1]);
+                ++i;
+                if(envDir.exists()) {
+                    System.out.println("DB with name "+envDir.getName()+" already exists");
+                    DbClient.dbEnvFilename = envDir.getName();
+                }
+                else{
+                    envDir.mkdir(); //make directory if it doesn't exist yet
+                    DbClient.dbEnvFilename = envDir.getName();
+                }
+                DbClient.invalidateCahe();
+            }else if ( args[i].charAt( 0 ) == '-' ) {
 
                 // switches of form -xxxxx (where xxx is a sequence of 1
                 // or more characters
@@ -254,10 +279,12 @@ public class Main {
         else
             pw = new PrintWriter( System.out );
         props.setProperty( "output", pw );
- 
+
+
+        Relation.buildCache();
+
         // Step 5: Get input and parse until an empty line is entered.
         //         An empty line is something with "." only.
-
 
         boolean runningConsole = false; //to know that console needs to be switched back on.
         boolean runningScriptCmd = false; //to know that script is being run.

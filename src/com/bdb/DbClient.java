@@ -452,6 +452,30 @@ public class DbClient {
         return foundRelation;
     }
 
+
+    public void buildRelationCache(){
+
+        Cursor cursor = myDbEnv.getDB().openCursor(null, null);
+
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        TupleBinding relationBinding = new MyRelationBinding();
+        Relation foundRelation = null;
+
+        try {
+            while (cursor.getNext(foundKey, foundData,
+                    LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                Relation relation =
+                        (Relation) relationBinding.entryToObject(foundData);
+                    foundRelation = relation;
+                relationsCache.put(relation.getName(), foundRelation);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     /**
      * invalidate the relations cache. Done when database is changed.
      * Currently no delete table is present.

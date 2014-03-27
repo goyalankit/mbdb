@@ -48,10 +48,7 @@ java -jar mdb.jar
 java -jar mdb.jar -f "filename"
 
 
-You may need to increase java heap size. MDB parser uses print writer to convert the parsed query to string.
-It causes the program to run out of heap memory. Although it is hardware dependent.
-java -Xmx2g -jar mdb.jar
-
+Please
 
 Optimizations
 ---
