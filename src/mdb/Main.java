@@ -170,6 +170,7 @@ public class Main {
         ByteArrayInputStream is; // is and dis are used together
         DataInputStream      dis; // to "feed" the scanner.
         BufferedReader       userInput = null;
+        BufferedReader      previousUserInput = null;
 
         // Step 1: print the Marquee...
 
@@ -185,15 +186,15 @@ public class Main {
 
 
 //      DEBUG:
-//       To simply run the script from src/input/ folder for testing.
-//        try {
-//            userInput =
-//                    new BufferedReader( new FileReader("src/input/testscript1.sql") );
-//        }
-//        catch ( Exception e ) {
-//            System.err.println( "File " + " not found:"
-//                    + e.getMessage() );
-//        }
+     //  To simply run the script from src/input/ folder for testing.
+        try {
+            userInput =
+                    new BufferedReader( new FileReader("src/input/f1.sql") );
+        }
+        catch ( Exception e ) {
+            System.err.println( "File " + " not found:"
+                    + e.getMessage() );
+        }
 
         //set default level of logger to off.
         DbClient.LOGGER.setLevel(Level.OFF);
@@ -288,6 +289,7 @@ public class Main {
         boolean runningConsole = false; //to know that console needs to be switched back on.
         boolean runningScriptCmd = false; //to know that script is being run.
 
+
         if ( userInput == null ){
             userInput = new BufferedReader( new InputStreamReader( System.in ) );
             runningConsole = true;
@@ -315,13 +317,19 @@ public class Main {
                         runningScriptCmd = false;
                         userInput = new BufferedReader( new InputStreamReader( System.in ) );
                         line = "";
-                    }else { System.exit( 10 ); }
+                    }else {
+                        System.exit( 10 );
+                    }
                 }
 
                 //Hack to run script command.
                 if(line == null && runningScriptCmd && runningConsole){
                     runningScriptCmd = false;
                     userInput = new BufferedReader( new InputStreamReader( System.in ) );
+                    line = "";
+                }else if(line == null && runningScriptCmd && !runningConsole){
+                    runningScriptCmd = false;
+                    userInput = previousUserInput;
                     line = "";
                 }
 
@@ -371,6 +379,7 @@ public class Main {
                 String scriptName = ((AstToken) (((ScriptCmd) ((ScriptCmd)( SqlLang ) root)).tok[1])).name.trim();
                 runningScriptCmd = true;
                 try {
+                    previousUserInput = userInput;
                     userInput = new BufferedReader(new FileReader(scriptName.replace("\"","")));
                 } catch (FileNotFoundException e) {
                     System.out.println("Filename " + scriptName + " not found at " +   new File(scriptName).getAbsolutePath());
