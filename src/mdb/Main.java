@@ -187,14 +187,14 @@ public class Main {
 
 //      DEBUG:
      //  To simply run the script from src/input/ folder for testing.
-        try {
-            userInput =
-                    new BufferedReader( new FileReader("src/input/f1.sql") );
-        }
-        catch ( Exception e ) {
-            System.err.println( "File " + " not found:"
-                    + e.getMessage() );
-        }
+//        try {
+//            userInput =
+//                    new BufferedReader( new FileReader("src/input/f1.sql") );
+//        }
+//        catch ( Exception e ) {
+//            System.err.println( "File " + " not found:"
+//                    + e.getMessage() );
+//        }
 
         //set default level of logger to off.
         DbClient.LOGGER.setLevel(Level.OFF);
