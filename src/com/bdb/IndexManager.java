@@ -51,7 +51,9 @@ public class IndexManager {
         if(null == metadata || metadata.numColsIndexed <= 0) return;
 
         for (String columnName : metadata.indexedColumnNames){
-            DbClient dbClient = new DbClient("mydbenv","index_"+relName+"_"+columnName);
+
+            DbClient dbClient = CacheManager.getDbClient("index_"+relName+"_"+columnName);
+            //new DbClient("mydbenv","index_"+relName+"_"+columnName);
             dbClient.addIndexForNewTuple(dbClient.getMyDbEnv(), pKey, columnName, tuple);
         }
 
